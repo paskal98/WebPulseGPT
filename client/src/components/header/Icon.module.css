@@ -1,0 +1,20 @@
+.icon{
+    width: 11.125rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    color: #FAFAFA;
+
+    font-family: 'Roboto Mono', monospace;
+    font-size: 1.3125rem;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 110%; /* 1.44375rem */
+    letter-spacing: 0.06563rem;
+}
+
+.icon img{
+    width: 1.875rem;
+    height: 1.875rem;
+}

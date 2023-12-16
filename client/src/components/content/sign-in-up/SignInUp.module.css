@@ -1,0 +1,315 @@
+.content{
+    max-width: 1280px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+
+.page{
+    display: flex;
+}
+
+.page__signinup{
+    padding: 3rem 0 0 0;
+    width: 27.5625rem;
+    height: 34.0625rem;
+    border: 1px solid #FAFAFA;
+    background: #FAFAFA;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.page__signinup__text{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.page__signinup__text__welcome{
+    display: flex;
+    width: 10.75rem;
+    height: 2.48744rem;
+    flex-direction: column;
+    justify-content: center;
+    color: #131313;
+    font-family: Roboto, sans-serif;
+    font-size: 2.25rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 110%; /* 2.475rem */
+    letter-spacing: 0.1125rem;
+}
+
+.page__signinup__text__undertext{
+    margin-top: 0.44rem;
+    margin-bottom: 1rem;
+    display: flex;
+    width: 11.02rem;
+    height: 0.93275rem;
+    flex-direction: column;
+    justify-content: center;
+    color: #131313;
+    font-family: Roboto, sans-serif;
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 110%; /* 0.9625rem */
+    letter-spacing: 0.04375rem;
+}
+
+.page__signinup__field{
+    margin-top: 0.99rem;
+    width: 17.375rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+}
+
+.page__signinup__field__label{
+    margin-bottom: 0.31rem;
+    display: flex;
+    height: 0.80844rem;
+    flex-direction: column;
+    justify-content: center;
+    color: #131313;
+    font-family: Roboto, sans-serif;
+    font-size: 0.75rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 110%; /* 0.825rem */
+    letter-spacing: 0.0375rem;
+}
+
+.page__signinup__field__input{
+    padding: 0 0.625rem;
+    height: 2.54963rem;
+    border-radius: 0.25rem;
+    border: 1px solid rgba(0, 0, 0, 0.30);
+    background: #fafafa;
+    color: #131313;
+    font-size: 16px;
+}
+
+.page__signinup__field__element{
+    position: absolute;
+    right: 0;
+    top: 50%;
+
+    transform: translateY(-50%) translateX(-50%);
+
+    font-size: 14px;
+
+    color: #131313B2;
+
+
+}
+
+.page__signinup__field__password_opt{
+    margin-top: 0.47rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.page__signinup__field__password_opt__remeber{
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+
+}
+
+.page__signinup__field__password_opt__remeber__button{
+    width: 0.76rem;
+    height: 0.76rem;
+    background: #fafafa;
+    border-radius: 4px;
+    margin-right: 0.25rem;
+
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+
+}
+
+.page__signinup__field__password_opt__remeber__button__selected{
+    position: relative;
+}
+
+.page__signinup__field__password_opt__remeber__button__selected::after{
+    content: '';
+    position: absolute;
+    width: 0.46rem;
+    height: 0.46rem;
+    border-radius: 2px;
+    top: 50%;
+    right: 50%;
+    transform: translate(50%, -50%) ;
+    background: rgba(19, 19, 19, 0.75);
+
+}
+
+.page__signinup__field__password_opt__remeber__text{
+    color: #131313;
+    font-family: Roboto, sans-serif;
+    font-size: 0.75rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 110%; /* 0.825rem */
+    letter-spacing: 0.0375rem;
+}
+
+.page__signinup__field__password_opt__forget{
+    display: flex;
+    height: 0.68406rem;
+    flex-direction: column;
+    justify-content: center;
+    color: #5687CF;
+    font-family: Roboto, sans-serif;
+    font-size: 0.75rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 110%; /* 0.6875rem */
+    letter-spacing: 0.03125rem;
+    cursor: pointer;
+}
+
+.page__signinup__button{
+    margin-top: 1.97rem;
+}
+
+.page__signinup__decoration{
+    width: 17.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1.31rem;
+    margin-bottom: 0.76rem;
+}
+
+.page__signinup__decoration__line{
+    display: block;
+    width: 6.875rem;
+    height: 0.06219rem;
+    background: #131313;
+}
+
+.page__signinup__decoration__text{
+    display: flex;
+    width: 1rem;
+    height: 0.80844rem;
+    flex-direction: column;
+    justify-content: center;
+    color: #131313;
+    font-family: Roboto Mono, monospace;
+    font-size: 0.75rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 110%; /* 0.825rem */
+    letter-spacing: 0.0375rem;
+}
+
+.page__signinup__additional{
+    margin-top: 0.73rem;
+    width: 17rem;
+    display: flex;
+    justify-content: center;
+    font-family: Roboto Mono, monospace;
+    font-size: 0.75rem;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 110%; /* 0.825rem */
+    letter-spacing: 0.0375rem;
+}
+
+.page__signinup__additional__marked{
+    margin-left: 0.3125rem;
+    color: #5687CF;
+    cursor: pointer;
+}
+
+.page__slider{
+
+    width: 27.5625rem;
+    height: 37.0625rem;
+    border: 1px solid #FAFAFA;
+
+    position: relative;
+
+}
+
+.page__slider__item{
+    width: 25.1875rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    position: absolute;
+    top: 50%;
+    right: 50%;
+
+    transform: translate(50%, -50%);
+}
+
+.page__slider__item__title{
+    color: #FAFAFA;
+    font-family: Roboto Mono, monospace;
+    font-size: 2rem;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 110%; /* 2.2rem */
+    letter-spacing: 0.1rem;
+}
+
+.page__slider__item__descr{
+    margin-top: 2.19rem;
+    text-align: center;
+
+    font-family: Roboto Mono, monospace;
+    font-size: 1.125rem;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 110%; /* 1.2375rem */
+    letter-spacing: 0.05625rem;
+
+    background: linear-gradient(90deg, #FAFAFA -7.2%, rgba(250, 250, 250, 0.71) 22%, rgba(250, 250, 250, 0.00) 129.54%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.page__slider__pagination{
+    width: 4.375rem;
+    height: 0.625rem;
+
+    display: flex;
+    justify-content: space-between;
+
+    position: absolute;
+    bottom: 1.5rem;
+    right: 50%;
+    transform: translateX(50%);
+}
+
+.page__slider__pagination__item{
+    width: 0.5rem;
+    height: 0.5rem;
+    background: #fafafa;
+    border-radius: 100%;
+    border: 0.0625rem solid #fafafa;
+
+}
+
+.page__slider__pagination__item__selected{
+    background: #131313;
+    width: 0.5rem;
+    height: 0.5rem;
+    border: 0.0625rem solid #fafafa;
+}
+

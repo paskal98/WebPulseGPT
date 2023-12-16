@@ -1,0 +1,17 @@
+.header{
+    padding: 0 1.25rem;
+    /*width: calc(100vw - 2.5rem);*/
+    border-bottom: 1px solid #FAFAFA;
+}
+
+.content{
+    margin: 0 auto;
+    max-width: 1280px;
+    height: 4.4375rem;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    background: #131313;
+}

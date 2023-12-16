@@ -1,0 +1,36 @@
+.button{
+
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    border-radius: 0.25rem;
+    background: linear-gradient(264deg, #282B71 -4.48%, #44D8E1 47.73%, #56CF95 104.48%);
+    background-size: 400% 400%;
+
+    color: #000;
+
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 110%; /* 0.9625rem */
+    letter-spacing: 0.04375rem;
+
+    animation: gradient 5s ease infinite;
+
+}
+
+
+@keyframes gradient {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
