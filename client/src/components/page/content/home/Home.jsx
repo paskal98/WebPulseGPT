@@ -1,9 +1,9 @@
 import styles from './Home.module.css'
-import Button from "../buttons/Button.jsx";
-import Slider from "../additional/slider-features/Slider.jsx";
-import blob from "../../assets/blob.png";
+import Button from "../../buttons/Button.jsx";
+import Slider from "../../additional/slider-features/Slider.jsx";
+import blob from "../../../../assets/blob.png";
 
-export default function Home() {
+export default function Home({onMenuChange}) {
 
     return <div className={styles.content}>
 
@@ -19,7 +19,7 @@ export default function Home() {
 
             <div className={styles.main__features}>
                 <Slider/>
-                <Button title={"Try It!"} spec_style={'try_it'}></Button>
+                <Button onClickButton={onMenuChange} title={"Try It!"} spec_style={'try_it'}></Button>
             </div>
 
         </div>

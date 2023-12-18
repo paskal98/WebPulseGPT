@@ -12,3 +12,23 @@
     width: 17.25rem;
     height: 2.4375rem;
 }
+
+.back{
+    display: flex;
+    width: 5.6875rem;
+    padding: 0.4375rem 1.875rem;
+    justify-content: center;
+    align-items: center;
+    border-radius: 0.25rem;
+    background: linear-gradient(264deg, #282B71 -4.48%, #44D8E1 47.73%, #56CF95 104.48%);
+}
+
+.service{
+    width: 100vw;
+    height: 100vh;
+    background: #fafafa;
+
+    display: flex;
+
+    position: relative;
+}

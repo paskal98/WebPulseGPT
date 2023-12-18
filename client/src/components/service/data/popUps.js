@@ -1,0 +1,1 @@
+export const popUps = ['unselected','folder','settings','account','home','faq'];

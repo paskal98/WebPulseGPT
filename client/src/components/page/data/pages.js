@@ -1,0 +1,1 @@
+export const pages =['home','sign_in_up'];

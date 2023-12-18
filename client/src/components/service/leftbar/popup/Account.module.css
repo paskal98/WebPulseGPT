@@ -1,0 +1,67 @@
+.account{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 2.81rem;
+    padding-bottom: 1.56rem;
+    height: 14.28rem;
+}
+
+.account__main{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.account__main__icon{
+
+    width: 5rem;
+    height: 5rem;
+    border-radius: 0.5rem;
+    background: #5687CF;
+    color: #FFF;
+    font-family: Open Sans, sans-serif;
+    font-size: 1.5rem;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 1rem; /* 66.667% */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+}
+
+.account__main__name{
+    margin-top: 1.25rem;
+    color: #131313;
+    font-family: Open Sans, sans-serif;
+    font-size: 1.5rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1rem; /* 66.667% */
+
+}
+
+.account__main__email{
+    margin-top: 0.62rem;
+    color: #969597;
+    font-family: Open Sans, sans-serif;
+    font-size: 1rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1rem; /* 114.286% */
+}
+
+.account__button{
+    padding: 0.75rem 2.92rem;
+    border-radius: 0.25rem;
+    background: #F39494;
+    color: #CA0000;
+    font-family: Open Sans, sans-serif;
+    font-size: 1rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1rem; /* 114.286% */
+
+}

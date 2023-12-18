@@ -1,0 +1,23 @@
+.chatoption{
+    margin-left: 2.25rem;
+    display: flex;
+}
+
+.chatoption__item{
+    padding: 0.5rem;
+    color: #131313;
+    font-family: Open Sans, sans-serif;
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1rem; /* 114.286% */
+    margin-right: 2rem;
+    cursor: pointer;
+    background: #fafafa;
+    border-radius: 0.25rem;
+    transition: ease-in-out all .3s;
+}
+
+.chatoption__item:hover{
+    background: #E8E7E9;
+}

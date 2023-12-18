@@ -1,0 +1,30 @@
+.conversation{
+    margin-left: 2.25rem;
+    width: calc(63.802vw - 2.25rem);
+    max-width: 980px;
+    height: calc(100vh - 1.56rem - 32px - 0.75rem);
+    overflow: scroll;
+    position: relative;
+}
+
+
+.conversation::-webkit-scrollbar {
+    width: 0px;
+    height: 0px;
+}
+
+/* Track */
+.conversation::-webkit-scrollbar-track {
+    background:  #555;
+}
+
+/* Handle */
+.conversation::-webkit-scrollbar-thumb {
+    background:linear-gradient(264deg, #282B71 -4.48%, #44D8E1 47.73%, #56CF95 104.48%);
+    border-radius: 5px;
+}
+
+/* Handle on hover */
+.conversation::-webkit-scrollbar-thumb:hover {
+    background:linear-gradient(264deg, #282B71 -4.48%, #44D8E1 47.73%, #56CF95 104.48%);
+}

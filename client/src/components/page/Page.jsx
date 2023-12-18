@@ -1,19 +1,31 @@
 import {useState} from "react";
-import Header from "../header/Header.jsx";
-import HomePage from "../content/HomePage.jsx";
-import SignInUpPage from "../content/sign-in-up/SignInUpPage.jsx";
-import Bottom from "../bottom/Bottom.jsx";
+import Header from "./header/Header.jsx";
+import HomePage from "./content/home/HomePage.jsx";
+import SignInUpPage from "./content/sign-in-up/SignInUpPage.jsx";
+import Bottom from "./bottom/Bottom.jsx";
+import {pages} from "./data/pages.js";
 
-const pages =['home','signInUp']
-export default function Page(){
-    const [page, setPage] = useState(pages[1]);
+export default function Page({onMainChange}){
+    const [page, setPage] = useState(pages[0]);
 
+    function handleMenuChange(type){
+
+        if(type==='try_it' || type==='form_log_in'){
+           onMainChange('service');
+           return;
+        }
+
+        if (type==='back'){
+            type=pages[0];
+        }
+        setPage(type);
+    }
 
     return (
         <>
-            <Header/>
-                {page==='home' && <HomePage/>}
-                {page==='signInUp' && <SignInUpPage/>}
+            <Header onMenuChange={handleMenuChange} type={page}/>
+                {page===pages[0] && <HomePage onMenuChange={handleMenuChange} />}
+                {page===pages[1] && <SignInUpPage onMenuChange={handleMenuChange}/>}
             <Bottom/>
         </>
     )

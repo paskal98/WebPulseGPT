@@ -1,0 +1,37 @@
+.leftbar{
+    margin-top:0.66rem ;
+    width: 4.75rem;
+    height: calc(100vh - 0.66rem);
+    border-right: 1px solid #DFDFDF;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.leftbar__icon{
+    width: 2.1875rem;
+    height: 2.1875rem;
+}
+
+.leftbar__icon img{
+    width: 100%;
+}
+
+.leftbar__buttons{
+    margin-top: 0.55rem;
+    height: calc(100vh - 0.66rem - 2.1875rem - 0.99rem - 1rem);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.leftbar__buttons__top{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.leftbar__buttons__bottom{}
+

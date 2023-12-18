@@ -12,6 +12,8 @@
     font-weight: 500;
     line-height: 110%; /* 1.44375rem */
     letter-spacing: 0.06563rem;
+
+    cursor: pointer;
 }
 
 .icon img{

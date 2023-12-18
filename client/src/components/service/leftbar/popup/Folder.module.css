@@ -1,0 +1,30 @@
+.folder{
+    padding-top: 1.75rem;
+    padding-bottom: 1.56rem;
+    height: 15.32rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.folder__main{
+    display: flex;
+    flex-direction: column;
+    align-items: end;
+}
+
+
+
+.folder__button{
+    padding: 0.75rem 2.92rem;
+    border-radius: 0.25rem;
+    background: #56CF9C;
+    color: #186b47;
+    font-family: Open Sans, sans-serif;
+    font-size: 1rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1rem; /* 114.286% */
+
+}

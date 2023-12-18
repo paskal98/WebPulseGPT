@@ -1,0 +1,32 @@
+.code{
+    width: calc(63.802vw - 2.25rem);
+    max-width: 980px;
+    overflow: scroll;
+    position: relative;
+    padding-left: 2.25rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    min-height: 2.5rem;
+}
+
+.code__warning{
+    color: #969597;
+    font-family: Open Sans, sans-serif;
+    font-size: 2rem;
+    font-style: normal;
+    font-weight: 700;
+    letter-spacing: 0.1rem;
+    text-transform: capitalize;
+
+    position: absolute;
+    top: 0;
+    right: 50%;
+    transform: translateX(50%);
+}
+
+.code::-webkit-scrollbar {
+    width: 0px;
+    height: 0px;
+}
+

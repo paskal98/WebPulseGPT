@@ -1,0 +1,25 @@
+.conversation{
+    width: 14.3075rem;
+    /*width: 12.6875rem;*/
+    padding: 0 0.81rem;
+    border-right: 1px solid #DFDFDF;
+}
+
+.conversation__options{
+    margin-top: 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.conversation__options__item{
+    cursor: pointer;
+    color: #969597;
+
+}
+
+.conversation__history{
+    margin-top: 0.19rem;
+    display: flex;
+    flex-direction: column;
+}

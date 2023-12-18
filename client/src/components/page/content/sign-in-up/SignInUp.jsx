@@ -5,7 +5,7 @@ import Button from "../../buttons/Button.jsx";
 import ButtonSignWith from "../../buttons/ButtonSignWith.jsx";
 import {faDiscord, faGoogle} from "@fortawesome/free-brands-svg-icons";
 
-export default function SignInUp(){
+export default function SignInUp({onMenuChange}) {
     return <div className={styles.content}>
         <div className={styles.page}>
             <div className={styles.page__signinup}>
@@ -17,31 +17,31 @@ export default function SignInUp(){
 
 
                 <div className={styles.page__signinup__field}>
-                        <label className={styles.page__signinup__field__label}>Email</label>
-                        <input className={styles.page__signinup__field__input} type="text" required/>
-                    </div>
+                    <label className={styles.page__signinup__field__label}>Email</label>
+                    <input className={styles.page__signinup__field__input} type="text" required/>
+                </div>
 
                 <div className={styles.page__signinup__field}>
-                        <label className={styles.page__signinup__field__label}>Password</label>
-                        <input className={styles.page__signinup__field__input} type="password" required/>
+                    <label className={styles.page__signinup__field__label}>Password</label>
+                    <input className={styles.page__signinup__field__input} type="password" required/>
 
-                        <div className={styles.page__signinup__field__element}>
-                            <FontAwesomeIcon icon={faLowVision}/>
+                    <div className={styles.page__signinup__field__element}>
+                        <FontAwesomeIcon icon={faLowVision}/>
+                    </div>
+
+                    <div className={styles.page__signinup__field__password_opt}>
+                        <div className={styles.page__signinup__field__password_opt__remeber}>
+                            <div className={styles.page__signinup__field__password_opt__remeber__button}></div>
+                            <div className={styles.page__signinup__field__password_opt__remeber__text}>Remember me</div>
                         </div>
-
-                        <div className={styles.page__signinup__field__password_opt}>
-                            <div className={styles.page__signinup__field__password_opt__remeber}>
-                                <div className={styles.page__signinup__field__password_opt__remeber__button}></div>
-                                <div className={styles.page__signinup__field__password_opt__remeber__text}>Remember me</div>
-                            </div>
-                            <div className={styles.page__signinup__field__password_opt__forget}>Forget Password?</div>
-
-                        </div>
+                        <div className={styles.page__signinup__field__password_opt__forget}>Forget Password?</div>
 
                     </div>
 
+                </div>
+
                 <div className={styles.page__signinup__button}>
-                    <Button title={'Log In'} spec_style={'form_log_in'}/>
+                    <Button onClickButton={onMenuChange} title={'Log In'} spec_style={'form_log_in'}/>
                 </div>
 
                 <div className={styles.page__signinup__decoration}>
@@ -54,7 +54,7 @@ export default function SignInUp(){
                 <ButtonSignWith title={"Discord"} faIcon={faDiscord}/>
 
                 <div className={styles.page__signinup__additional}>
-                    Don’t have account yet? <span className={styles.page__signinup__additional__marked}> Sign up</span >
+                    Don’t have account yet? <span className={styles.page__signinup__additional__marked}> Sign up</span>
                 </div>
 
             </div>
@@ -62,11 +62,14 @@ export default function SignInUp(){
             <div className={styles.page__slider}>
                 <div className={styles.page__slider__item}>
                     <div className={styles.page__slider__item__title}>Tip #1</div>
-                    <div className={styles.page__slider__item__descr}>The detailed description increase accuracy of your answer</div>
+                    <div className={styles.page__slider__item__descr}>The detailed description increase accuracy of your
+                        answer
+                    </div>
                 </div>
 
                 <div className={styles.page__slider__pagination}>
-                    <div className={`${styles.page__slider__pagination__item} ${styles.page__slider__pagination__item__selected} `}></div>
+                    <div
+                        className={`${styles.page__slider__pagination__item} ${styles.page__slider__pagination__item__selected} `}></div>
                     <div className={styles.page__slider__pagination__item}></div>
                     <div className={styles.page__slider__pagination__item}></div>
                     <div className={styles.page__slider__pagination__item}></div>

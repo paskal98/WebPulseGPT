@@ -4,7 +4,7 @@ import {faFile, faHdd, faHome} from '@fortawesome/free-solid-svg-icons'
 import {useState} from "react";
 import {faGithub} from "@fortawesome/free-brands-svg-icons";
 
-export default function Menu() {
+export default function Menu({onMenuChange}) {
 
     const menu_items = [
         'home',
@@ -22,7 +22,10 @@ export default function Menu() {
 
     function handleSelect(type) {
         setSelect(type);
+        onMenuChange(type);
     }
+
+
 
 
     return <div className={styles.menu}>

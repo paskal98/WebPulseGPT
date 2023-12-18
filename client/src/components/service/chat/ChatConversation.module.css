@@ -1,0 +1,24 @@
+.chatconv{
+
+    margin-top: 1.56rem;
+    width: calc(100vw - 14.3075rem - 4.75rem);
+
+    display: flex;
+    justify-content: center;
+
+    position: relative;
+
+
+}
+
+.chatconv__blur{
+    width: calc(100vw - 14.3075rem - 4.75rem);
+    position: absolute;
+    bottom: 0;
+    height: 5.3rem;
+    background: rgba(250, 250, 250, 0.99);
+}
+
+.chatconv__h100vh{
+    height: 100vh;
+}

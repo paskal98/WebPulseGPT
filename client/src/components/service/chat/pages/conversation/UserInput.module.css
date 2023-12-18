@@ -1,0 +1,47 @@
+.userinput{
+    max-width: 980px;
+    width: 63.802vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    right: 50%;
+    bottom: 2rem;
+    transform: translateX(50%);
+    z-index: 10;
+
+    -webkit-box-shadow: 0px 0px 153px 51px rgba(255,255,255,0.99);
+    -moz-box-shadow: 0px 0px 153px 51px rgba(255,255,255,0.99);
+    box-shadow: 0px 0px 50px 50px rgba(255,255,255,0.99);
+
+}
+
+.userinput__input{
+    width: inherit;
+    padding: 0.94rem 0 0.94rem 0.94rem;
+    color: #131313;
+    font-family: Open Sans, sans-serif;
+    font-size: 1rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1.25rem; /* 142.857% */
+    border-radius: 0.25rem;
+    border: 1px solid #DFDFDF;
+}
+
+
+.userinput__button{
+    position: absolute;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.25rem;
+    background: linear-gradient(47deg, #1E26FF -20%, #44D8E1 52.6%, #56CF95 131.51%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #fafafa;
+    font-size: 16px;
+    right: 0;
+    top:50%;
+    transform: translate(-50%, -50%);
+}

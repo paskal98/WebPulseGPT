@@ -1,0 +1,102 @@
+.item{
+    padding: 0.94rem 0.94rem 0 0.94rem;
+    width: 13.4375rem;
+    height: 11.375rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-radius: 0.5rem;
+    border: 1px solid #E3E2E3;
+    position: relative;
+}
+
+.item__header{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.item__header__folder{
+    width: 2.5625rem;
+    height: 2.5625rem;
+    border-radius: 0.25rem;
+    background: #ffeecf;
+    color: #FFA111;
+    font-size: 1.35rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.item__header__title{
+    color: #131313;
+    font-family: Open Sans, sans-serif;
+    font-size: 1rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1rem; /* 133.333% */
+}
+
+.item__header__menu{
+    width: 1.125rem;
+    font-size: 1.04169rem;
+    color: #131313;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+}
+
+.item__descr{
+    height: 5.5rem;
+    color: #969597;
+    font-family: Open Sans, sans-serif;
+    font-size: 1rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1.2rem; /* 114.286% */
+}
+
+.item__bottom{
+    height: 1.94rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.item__bottom__text{
+    color: #000;
+    font-family: Open Sans, sans-serif;
+    font-size: 0.825rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1rem; /* 160% */
+}
+
+.item__bottom__version{
+    color: #969597;
+    font-family: Open Sans, sans-serif;
+    font-size: 0.825rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1rem; /* 160% */
+}
+
+.item__line{
+    position: absolute;
+    width: 100%;
+    height: 0.0625rem;
+    background: #DFDFDF;
+    bottom: 1.94rem;
+    right: 0;
+}
+
+.item__popup{
+    border-radius: 0.25rem;
+    background: #FDFCFF;
+    box-shadow: 0px 0px 51px 0px rgba(0, 0, 0, 0.25);
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 3.5rem;
+    right: 1rem;
+}

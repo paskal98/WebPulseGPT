@@ -1,0 +1,38 @@
+.welcome{
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    margin: auto 0;
+
+}
+
+.welcome__text{
+    width: 14.125rem;
+    color: #969597;
+    text-align: center;
+    font-family: Open Sans, sans-serif;
+    font-size: 1.125rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1.5rem; /* 88.889% */
+    margin-bottom: 1.44rem;
+
+}
+
+.welcome__button{
+
+    width: 7.9375rem;
+    height: 2rem;
+    color: #FFF;
+    font-family: Open Sans, sans-serif;
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 1rem; /* 114.286% */
+    border-radius: 0.25rem;
+    background: linear-gradient(86deg, #1E26FF -34.63%, #44D8E1 51.27%, #56CF95 144.63%);
+
+}

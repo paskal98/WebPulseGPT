@@ -1,0 +1,19 @@
+.leftbar_button{
+    margin-top: 0.44rem;
+    width: 2.1875rem;
+    height: 2.1875rem;
+    border-radius: 0.25rem;
+    border: 1px solid #D9D9D9;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #969597;
+    background: #fafafa;
+    cursor: pointer;
+    transition: all ease-in-out .3s;
+
+}
+
+.leftbar_button:hover{
+    background: #D9D9D9;
+}

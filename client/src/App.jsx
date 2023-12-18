@@ -3,15 +3,21 @@ import Page from "./components/page/Page.jsx";
 import {useState} from "react";
 import Service from "./components/service/Service.jsx";
 
-const routs =['service','page']
+const routs =['page','service']
 function App() {
 
-    const [route, setRoute] = useState(routs[0]);
+    const [route, setRoute] = useState(routs[1]);
+
+    function handleMainChange(type){
+        setRoute(type);
+    }
+
 
     return (
         <>
-            {route==='page' && <Page/>}
-            {route==='service' && <Service/>}
+
+            {route===routs[0] && <Page onMainChange={handleMainChange}/>}
+            {route===routs[1] && <Service onMainChange={handleMainChange}/>}
 
         </>
     )

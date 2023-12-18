@@ -1,0 +1,37 @@
+.wrapper{
+    height: 3.6rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    margin-bottom: 1.125rem;
+}
+
+.wrapper:nth-last-child(1){
+    margin-bottom: 0;
+}
+
+.wrapper__label{
+    display: flex;
+    align-items: center;
+    color: #131313;
+    font-family: Open Sans, sans-serif;
+    font-size: 0.75rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1rem; /* 133.333% */
+
+}
+
+.wrapper__label span{
+    margin-left: 0.4rem;
+    font-size: 0.875rem;
+}
+
+.wrapper__input{
+
+    width: 16.75rem;
+    height: 2rem;
+    border-radius: 0.25rem;
+    border: 1px solid #DFDFDF;
+    padding: 0 0.875rem;
+}
