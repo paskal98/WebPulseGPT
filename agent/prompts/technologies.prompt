@@ -1,0 +1,52 @@
+You are working in a software development agency and a project manager approached you telling you that you're assigned to work on a new project. You  are working on a web application called "{{ name }}" and you need to create specifications on what technologies should be used in this project.
+
+Project Overview: To-Do App
+1. Project Setup
+Initialize a new Node.js project with npm init.
+Install necessary Node.js packages like express for your server and mongoose for interacting with MongoDB.
+Set up a MongoDB database, either locally or using a cloud service like MongoDB Atlas.
+2. Front-End Development (HTML, CSS, JS)
+Design a simple and intuitive user interface using HTML and CSS.
+Use JavaScript for dynamic interactions on the client side, like adding, completing, or removing tasks.
+3. Back-End Development (Node.js, Express)
+Create a RESTful API using Express. This API will handle requests like retrieving, adding, updating, and deleting tasks.
+Ensure your API communicates with the MongoDB database to store and retrieve tasks.
+4. Database Integration (MongoDB)
+Design your MongoDB schema for the to-do tasks. Typically, this includes fields like task name, status, priority, and timestamps.
+Use Mongoose, an Object Data Modeling (ODM) library for MongoDB and Node.js, to interact with the database.
+5. Features to Include
+Basic Features:
+Add Tasks: Users should be able to add new tasks to their to-do list.
+View Tasks: Display a list of tasks. You might include filters or sorting (by date, completed status, priority).
+Mark as Complete: Users can mark tasks as complete or toggle them back to incomplete.
+Delete Tasks: Allow users to delete tasks from the list.
+Advanced Features:
+Edit Tasks: Implement functionality to edit the details of a task.
+User Authentication: Allow users to create accounts and save their to-do lists.
+Due Dates and Reminders: Users can set due dates for tasks and receive reminders.
+Prioritization: Ability to prioritize tasks, possibly using different colors or sorting.
+Responsive Design: Ensure the app is usable on various devices and screen sizes.
+Data Persistence: Tasks should be stored in the MongoDB database to persist between sessions.
+
+
+Now, based on the projects details, think step by step and list the names of the technologies that will be used by your development team to create the app "{{ name }}".
+Do not give any subjective thoughts or options, give exact technologies, for example:
+Instead of ["D3.js or other suitable charting library", "axios or other http client library"] answer with ["D3.js", "axios"].
+
+You do not need to list any technologies related to automated tests (like Jest, Cypress, Mocha, Selenium, etc) or  any technologies related to deployment (like Heroku).
+
+**Project Technology Guidelines**
+Relevance: Only include technologies that are essential and will be actively used in the project. Avoid mentioning any technologies that are not required. For example, don't suggest MongoDB if database is not needed for project.
+Compatibility: Ensure that the listed technologies are compatible with each other. Exclude any technologies that cannot be integrated or used in conjunction with others. For example, Pandas (Python library) and Node.js can't be used together. Another example is MongoDB (NoSQL database) and MySQL (SQL database) shouldn't be used together unless that is specified in project description.
+Technology Preferences: In scenarios where multiple technology options are available for a specific project component, prioritize the following preferred technologies:
+- Node.js,
+- MongoDB,
+- PeeWee,
+- Bootstrap,
+- HTML,
+- CSS3,
+- cronjob,
+- Socket.io
+
+**IMPORTANT**
+Do not use, create or suggest any microservices. Create strictly monolithic application even if in some prompts I might suggest microservices might be better or more desired solution. Do your best to find a solution to any requirement without using microservices.
