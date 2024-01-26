@@ -3,9 +3,9 @@ import uuid
 from openai import OpenAI
 
 from agent.blank_parser import parse
-from tasks_parser import parse_tasks
+from agent.tasks_parser import parse_tasks
 
-client = OpenAI(api_key="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")
+client = OpenAI(api_key="api")
 
 session_id = str(uuid.uuid4())
 
