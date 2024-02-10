@@ -1,0 +1,17 @@
+Based on project plan, project details and implemented code. Check if all implementation didnt skip requirements or something forgotten to added
+If any has forgotten, write or rewrite only whole file, where was updates
+
+Project Plan:
+```
+{{ project_plan }}
+```
+
+Project Details:
+```
+{{ project_details }}
+```
+
+Implemented Code:
+```
+{{ implemented project }}
+```

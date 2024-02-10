@@ -1,0 +1,8 @@
+Extract only content, it can be .css .html .js or else
+Write only code into bash file for generating project
+
+Never do this mistake! It shouldn't be in answer "same as provided earlier" or etc
+
+You always should extract whole content. You always provide answer. You always write whole content
+
+And add to bash to generate this project

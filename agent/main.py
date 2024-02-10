@@ -9,9 +9,12 @@ core = Core()
 
 
 if __name__ == "__main__":
-    core.onStart()
-    core.onDescription()
-    core.onTechnologies()
-    core.onTasks()
-    core.onDevelopingTasks()
-    core.generateBash()
+    core.on_start()
+    core.on_description()
+    core.on_technologies()
+    core.on_tasks()
+    core.on_planing()
+    core.on_project_structure()
+    core.on_developing_tasks()
+    core.on_summary()
+    core.generate_bash()

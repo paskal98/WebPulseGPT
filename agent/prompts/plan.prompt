@@ -1,0 +1,32 @@
+You are working in a software development agency and a project manager and software architect approach you telling you that you're assigned to work on a new project. You are working on a web-app called "{{ name }}" and you need to create a detailed development plan so that developers can start developing the app.
+
+here tech stack
+{{ project_tech }}
+
+here details
+{{ project_details }}
+
+here tasks shortly
+{{ project_tasks }}
+
+
+Create a detailed development plan so that developers can start developing the app
+
+here example of output, structure can be different use it as example of type of outputting, not actually
+
+0. Header
+- Task 1: some description
+- Task 2: some description
+- Task 3: some description
+...
+
+
+
+list of header, that must be always in answer are:
+- Project Setup
+- Front-End Development
+- Back-End Development
+- Database Integration
+- Features
+
+

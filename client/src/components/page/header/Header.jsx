@@ -13,7 +13,7 @@ export default function Header({onMenuChange,type}){
             <Icon onClickIcon={onMenuChange} />
             {type===pages[0] &&
                 <>
-                    <Menu onMenuChange={onMenuChange}/>
+                    <Menu onMen1uChange={onMenuChange}/>
                     <Button onClickButton={onMenuChange} title={'Sign In/Up'} spec_style={'sign_in_up'} />
                 </>
             }

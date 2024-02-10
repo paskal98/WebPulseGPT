@@ -1,0 +1,9 @@
+Based on project detail and tasks, create detailed standardize a tree structure of project directory
+Include files naming with type and directories such as default for many web-app project built with node.js and express.js
+
+{{ project_details }}
+
+{{ project_plan }}
+
+
+give answer only tree structure. Other comments and text not provided
