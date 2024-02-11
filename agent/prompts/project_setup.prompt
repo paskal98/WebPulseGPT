@@ -1,0 +1,8 @@
+Write only command for execution, without comments and other highlights. I need only bash or sh commands.
+
+Write in format of
+
+here write type
+```
+here write script
+```

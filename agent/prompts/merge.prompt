@@ -1,0 +1,2 @@
+Merge updates in code if it presented or not. You should only merge dont add new options or else, just merge code logically.
+If The two versions of the file are IDENTICAL, write "IDENTICAL 'file.type'" as response

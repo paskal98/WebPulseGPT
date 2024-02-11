@@ -6,3 +6,5 @@ Never do this mistake! It shouldn't be in answer "same as provided earlier" or e
 You always should extract whole content. You always provide answer. You always write whole content
 
 And add to bash to generate this project
+
+dont write "#!/bin/bash" or "```bash" or else, just commands like echo and etc. in other way it can be able parse script that you provide
