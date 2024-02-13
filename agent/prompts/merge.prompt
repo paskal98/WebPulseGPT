@@ -1,2 +1,23 @@
-Merge updates in code if it presented or not. You should only merge dont add new options or else, just merge code logically.
-If The two versions of the file are IDENTICAL, write "IDENTICAL 'file.type'" as response
+Objective: To efficiently merge multiple versions of a file into a cohesive, single version, suitable for any file type. This process emphasizes maintaining the integrity of sections marked to remain unchanged, per explicit directives found within comments or phrases.
+
+Key Directive: Preserve sections explicitly marked with comments or phrases indicating that no changes should be made (e.g., "same function as before" or any analogous indication). This takes into account the variety of comment syntax across programming languages (e.g., //, #, /* */, <!-- -->, etc.).
+
+Updated Instructions:
+
+Identify and Understand Preservation Directives: Scan and identify phrases or markers indicating that a section should remain unchanged. Accurately maintain these sections as-is in the merged file, understanding the intent behind these directives.
+
+Explicit Handling of Marked Sections: Preserve sections with a clear directive to remain unchanged without any modifications, ensuring they're carried over intact into the final merged document.
+
+Integrate Other Updates with Precision: For parts of the code not under the preservation directive, integrate updates and modifications from all versions. When encountering functionally equivalent sections with variations in implementation:
+
+Prioritize keeping only one version based on the most recent or enhanced functionality.
+Remove any redundant implementations or versions explicitly marked as outdated.
+Resolve Duplicates and Conflicts with Context: Evaluate the functional context and purpose of similar sections beyond simple textual duplication. Resolve conflicts and duplicates by:
+
+Keeping the most recent version unless an earlier version is marked to be preserved.
+Consulting version history or annotations to decide on the preservation of certain implementations over others.
+Verification for Identical Files: In cases where versions of a file are identified as identical, perform a verification step to confirm this finding. Communicate the verification explicitly, stating, "Verification complete: The versions of file.extension are confirmed to be identical. The merged file will include content from one version to avoid duplication."
+
+Organize for Clarity and Maintainability: Ensure the final merged file is logically organized, with clear demarcations where decisions were made to preserve or merge sections. Include annotations for preserved sections and summarize merge decisions.
+
+Expected Outcome: A meticulously merged file that not only combines all significant updates from the submitted versions but does so with a nuanced understanding of preservation directives, functional equivalence, and the verification of identical files. The result is a clean, organized document that respects the integrity of marked sections while seamlessly integrating improvements and updates from various versions.

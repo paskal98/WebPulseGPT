@@ -1,4 +1,5 @@
 import os
+import re
 
 from openai import OpenAI
 
@@ -7,54 +8,36 @@ from agent.implemented_parser import  parse_file_contents
 
 core = Core()
 
-text = """
-```javascript
-// models/task.js
-
-const mongoose = require("mongoose");
-
-const taskSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true
-  },
-  status: {
-    type: String,
-    enum: ['pending', 'completed'],
-    default: 'pending'
-  },
-  priority: {
-    type: String,
-    enum: ['low', 'medium', 'high'],
-    default: 'medium'
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now
-  }
-});
-
-module.exports = mongoose.model("Task", taskSchema);
-```
-
-"""
 
 if __name__ == "__main__":
+    print("START...\n\n")
     core.on_start()
+
+    print("Description...\n\n")
     core.on_description()
+
+    print("Technologies...\n\n")
     core.on_technologies()
+
+    print("Tasks...\n\n")
     core.on_tasks()
+
+    print("Planing...\n\n")
     core.on_planing()
+
+    print("Project Structure...\n\n")
     core.on_project_structure()
+
+    print("Implementing Tasks..\n\n")
     core.on_developing_tasks()
-    core.on_summary()
+
+    print("Merge...\n\n")
     core.on_merge_updates()
+
+    print("Summary...\n\n")
+    core.on_summary()
+
+    print("Generate Build File (build.sh)...\n\n")
     core.generate_bash()
 
-    # Parse the text and print the result
-    # files_array = parse_file_contents(text)
-    # print(files_array['models/task.js'])
+
