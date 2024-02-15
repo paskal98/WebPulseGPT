@@ -12,7 +12,7 @@ from agent.plan_parser import parse_development_plan, parse_development_plan_v2
 from agent.prebuild_file_parse import escape_snippet
 from agent.tasks_parser import parse_tasks
 
-client = OpenAI(api_key="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")
+client = OpenAI(api_key="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")
 
 session_id = str(uuid.uuid4())
 
@@ -50,8 +50,6 @@ def add_to_build_script(file_path, content, script_path='output/build.sh'):
 {content}
 EOF
 """
-
-    # Append the command to the build script
     with open(script_path, 'a') as script_file:
         script_file.write(command)
 
@@ -350,39 +348,47 @@ class Core:
                 for key in dictionary.keys():
                     file.write("- " + key + "\n")
 
-    # def on_merge_updates(self):
-    #     with open("prompts/merge.prompt", "r") as file:
-    #         merge = file.read().strip()
-    #
-    #     consolidated_project_files = consolidate_duplicates(self.project_files)
-    #
-    #     for dictionary in consolidated_project_files:
-    #         self.clear_history_role()
-    #         for key, value in dictionary.items():
-    #             file = f"{key}: {value}\n\n"
-    #             self.conversation_history_roles.append({"role": "user", "content": merge + "\n" + file})
-    #             response = self.ai_conversation(None, 'role').content
-    #
-    #             if "IDENTICAL" in response:
-    #                 merged_file = f"{key}: {value}\n\n"
-    #             else:
-    #                 merged_file = response
-    #
-    #             self.merged_project.append({key: merged_file})
-    #
-    #     with open('output/merged_project.txt', 'w', encoding="utf-8") as file:
-    #         for dictionary in self.merged_project:
-    #             for key, value in dictionary.items():
-    #                 file.write(f"{key}: {value}\n\n")
-    #             file.write("\n----------\n")
-    #         file.write("\n\n\n\n")
-    #
-    #         for dictionary in self.merged_project:
-    #             for key in dictionary.keys():
-    #                 file.write("- " + key + "\n")
+    def on_check_modularity(self):
+        self.clear_history_role()
+        with open("prompts/modularity.prompt", "r") as file:
+            modularity = file.read().strip()
+        self.conversation_history_roles.append({"role": "system", "content": modularity})
+
+
+        for dictionary in self.merged_project:
+            for key, value in dictionary.items():
+                if ".html" in key:
+                    self.conversation_history_roles.append(
+                        {"role": "system", "content": "here html file, that should be checked\n" + value})
+                else:
+                    self.conversation_history_roles.append(
+                        {"role": "system", "content": value})
+
+        response = self.ai_conversation(None, 'role').content
+        print(response)
+
+        self.clear_history_role()
+        self.conversation_history_roles.append({"role": "system", "content": modularity})
+        for dictionary in self.merged_project:
+            for key, value in dictionary.items():
+                if ".js" in key and not "express" in value or not "mongoose" in value:
+                    self.conversation_history_roles.append(
+                        {"role": "system", "content": "here js file, that should be checked\n" + value})
+                else:
+                    self.conversation_history_roles.append(
+                        {"role": "system", "content": value})
+
+        response = self.ai_conversation(None, 'role').content
+        print(response)
 
     def generate_bash(self):
+        packages = []
         for dictionary in self.merged_project:
-            self.clear_history_role()
             for key, value in dictionary.items():
                 add_to_build_script(key, escape_snippet(key, value))
+                if "require(" in value:
+                    packages.append(parse_packages_from_code(value))
+
+        if len(packages) > 0:
+            unique = list(map(list, set(map(tuple, packages))))
+            add_package_install_commands(unique)

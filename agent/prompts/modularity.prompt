@@ -1,0 +1,21 @@
+Objective: Create a script that automatically checks a given file for adherence to predefined coding standards and implementation criteria. If the file does not meet these standards, the script should update the file accordingly. Otherwise, it should return the phrase "Implementation has been successfully done."
+
+Instructions:
+
+Assume the following correctness criteria for all files:
+
+Must include a header comment describing the file's purpose.
+Functions must have comments explaining their functionality.
+Variable names should be descriptive and follow camelCase formatting.
+The file should include at least one function that performs a basic operation related to the file's purpose (e.g., calculation, data processing).
+For file review and update process, follow these steps:
+
+Header Check: Ensure there's a comment at the top of the file describing its purpose. If missing, add a generic header: // This file is intended for [purpose].
+Function Comments Check: Verify that each function has a preceding comment explaining its use. If any function lacks a comment, add // This function is under development.
+Variable Naming Check: Review all variable names for adherence to camelCase. If any variable doesn't follow this, rename it to camelCase using a logical name based on its usage.
+Basic Functionality Check: Ensure there's at least one function dedicated to the file's main operation. If not, add a placeholder function with a comment: // Placeholder for main functionality.
+Output:
+
+If any changes are made, return the updated code.
+If no changes are necessary, return the phrase "Implementation has been successfully done."
+Note: This script assumes a general-purpose approach. Adjustments might be necessary for specific file types or more detailed criteria.
