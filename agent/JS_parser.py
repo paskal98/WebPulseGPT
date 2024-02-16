@@ -4,22 +4,6 @@ import re
 import requests
 
 
-def parse_code_with_esprima_server(code):
-    url = 'http://localhost:3000/parse'
-    data = {'code': code}
-    headers = {'Content-Type': 'application/json'}
-
-    try:
-        response = requests.post(url, json=data, headers=headers)
-        if response.status_code == 200:
-            parsed_ast = response.json()
-            return parsed_ast
-        else:
-            print("Error:", response.text)
-    except Exception as e:
-        print("Error occurred:", e)
-
-
 def parse_ast_conditionally_old(ast):
     has_dom_content_loaded = False
     top_level_variables = []
@@ -78,6 +62,166 @@ def parse_ast_conditionally_old(ast):
         "functions": top_level_functions + (nested_functions if has_dom_content_loaded else []),
     }
 
+def find_function_by_name_old(code, function_name):
+    # Initialize variables to store the function's parameters and body
+    parameters = ""
+    body = ""
+
+    # Split the code by lines
+    lines = code.split('\n')
+
+    # Initialize a flag to indicate whether the function has been found
+    function_found = False
+
+    # Initialize a counter to keep track of the curly braces
+    brace_counter = 0
+
+    for i, line in enumerate(lines):
+        trimmed_line = line.strip()
+        # Improved check for the function declaration
+        if function_name in trimmed_line and "function" in trimmed_line and "(" in trimmed_line and "{" in trimmed_line:
+            function_signature = trimmed_line[:trimmed_line.index('{')].strip()
+            # Check if the function name exactly matches what we're looking for
+            if function_signature.startswith("function") and function_name == \
+                    function_signature.split(" ")[1].split("(")[0]:
+                function_found = True
+                parameters = trimmed_line.split('(')[1].split(')')[0]
+                body += trimmed_line[trimmed_line.index('{'):].strip() + '\n'
+                brace_counter += 1
+                continue
+        if function_found:
+            # Record the body until the closing curly brace is found
+            body += line + '\n'
+            brace_counter += line.count('{') - line.count('}')
+            if brace_counter == 0:
+                break
+
+    parameters = parameters.strip()
+    body = body.strip()
+
+    if not function_found:
+        return "Function not found"
+    else:
+        return f'"{function_name}": "({parameters}) \n{body}\n"'
+
+def find_arrow_function_by_name_old(code, function_name):
+    # Initialize variables to store the function's parameters and body
+    parameters = ""
+    body = ""
+    function_found = False
+    processing_body = False
+    brace_counter = 0
+
+    # Normalize the code to ensure consistent parsing
+    code_lines = code.split('\n')
+    for line in code_lines:
+        stripped_line = line.strip()
+        if f"const {function_name} =" in stripped_line and "=>" in stripped_line and not function_found:
+            function_found = True
+            # Extract parameters
+            parts = stripped_line.split('=>', 1)
+            parameters_part = parts[0].split('=')[1].strip()
+            parameters = parameters_part.strip("()")
+
+            body_part = parts[1].strip()
+            if body_part.startswith('{'):
+                # Handle potentially multiline body starting on the same line
+                processing_body = True
+                brace_counter += body_part.count('{') - body_part.count('}')
+                if brace_counter > 0:
+                    body += body_part[1:] + '\n'  # Remove the opening brace for consistency in output
+                else:
+                    body = body_part[1:-1]  # Single-line function body
+                    break
+            else:
+                # Single-line arrow function without braces
+                body = body_part
+                break
+        elif function_found and processing_body:
+            # Accumulate body lines for multiline arrow functions
+            body += line + '\n'
+            brace_counter += line.count('{') - line.count('}')
+            if brace_counter == 0:
+                # Once all braces are closed, remove the last line's newline and trailing brace
+                body = body.rstrip()  # Remove trailing whitespace and newline
+                processing_body = False
+                break
+
+    if not function_found:
+        return "Function not found"
+    else:
+        # Correcting the body's ending in case of multiline functions
+        if body.endswith('}'):
+            body = body[:body.rfind('}')]  # Corrected to use 'rfind' to remove the last closing brace
+        # Formatting the output
+        return f'"{function_name}": ({parameters}) => {{\n{body}\n}}'
+
+def find_event_listeners_by_variable_old(code, variable_name):
+    event_listeners = []
+
+    # Split the code by lines
+    lines = code.split('\n')
+
+    # Flags to indicate when we are within an event listener block
+    in_event_listener = False
+    brace_count = 0
+    current_listener = {'event_type': '', 'body': ''}
+
+    for line in lines:
+        if f'{variable_name}.addEventListener(' in line:
+            in_event_listener = True
+            # Extract the event type from the line
+            event_type_start = line.find('("') + 2
+            event_type_end = line.find('",', event_type_start)
+            event_type = line[event_type_start:event_type_end]
+            current_listener['event_type'] = event_type
+            # Find the start of the callback function
+            function_start = line.find('function', event_type_end)
+            if function_start != -1:
+                brace_count += line.count('{') - line.count('}')
+                current_listener['body'] += line[function_start:] + '\n'
+            continue
+
+        if in_event_listener:
+            brace_count += line.count('{') - line.count('}')
+            current_listener['body'] += line + '\n'
+            if brace_count == 0:
+                # We've reached the end of the event listener callback
+                in_event_listener = False
+                # Cleanup the captured body
+                body_cleaned = current_listener['body'].strip()
+                if body_cleaned.endswith('}'):
+                    body_cleaned = body_cleaned[:body_cleaned.rfind('}')]
+                current_listener['body'] = body_cleaned
+                event_listeners.append(current_listener)
+                current_listener = {'event_type': '', 'body': ''}
+
+    if not event_listeners:
+        return "Event listener not found"
+    else:
+        # Formatting the results
+        formatted_output = ""
+        for listener in event_listeners:
+            formatted_output += f'Event Type: {listener["event_type"]}, Callback Function: {{\n{listener["body"]}\n}}\n\n'
+        return formatted_output.strip()
+
+
+
+
+def get_ast_request(code):
+    url = 'http://localhost:3210/parse'
+    data = {'code': code}
+    headers = {'Content-Type': 'application/json'}
+
+    try:
+        response = requests.post(url, json=data, headers=headers)
+        if response.status_code == 200:
+            parsed_ast = response.json()
+            return parsed_ast
+        else:
+            print("Error:", response.text)
+    except Exception as e:
+        print("Error occurred:", e)
 
 def parse_ast_conditionally(ast):
     # Initialize state variables
@@ -151,36 +295,36 @@ def parse_ast_conditionally(ast):
     }
 
 
-def find_callbacks(ast):
-    callbacks = []
+def parse_required_modules(ast):
+    required_modules = {}
+    stack = [ast]  # Initialize stack with the root AST node
 
-    def is_callback_function(node):
-        # Check if the node is a dict and represents a function, which could be a callback
-        return isinstance(node, dict) and node.get('type') in ['FunctionExpression', 'ArrowFunctionExpression']
+    while stack:
+        node = stack.pop()  # Get the next node to process
 
-    def traverse(node, path=[]):
-        # Enhanced traversal of the AST, ensuring node is a dictionary before using .get()
-        if isinstance(node, dict):
-            for key, value in node.items():
-                if is_callback_function(value):
-                    # Capture the path to this callback as a string representation
-                    callback_path = "->".join(path + [key])
-                    callbacks.append(callback_path)
-                else:
-                    # Recursively traverse if value is a dict or list, without assuming .get() is available
-                    traverse(value, path + [key])
-        elif isinstance(node, list):
-            for index, item in enumerate(node):
-                if is_callback_function(item):
-                    # Capture the path to this callback, including its position in a list
-                    callback_path = "->".join(path + [str(index)])
-                    callbacks.append(callback_path)
-                else:
-                    traverse(item, path + [str(index)])
+        # Check if this node is a variable declaration with a require call
+        if node.get('type') == 'VariableDeclaration':
+            for declarator in node.get('declarations', []):
+                init = declarator.get('init', {})
+                if init.get('type') == 'CallExpression' and init.get('callee', {}).get('name') == 'require':
+                    var_name = declarator.get('id', {}).get('name')
+                    module_name = init.get('arguments', [{}])[0].get('value')
+                    required_modules[var_name] = module_name
 
-    traverse(ast)
+        # Add child nodes to the stack to continue the traversal
+        for key, value in node.items():
+            if isinstance(value, dict):  # If the value is a dict, it's a single node
+                stack.append(value)
+            elif isinstance(value, list):  # If it's a list, extend the stack with all dict elements
+                stack.extend([item for item in value if isinstance(item, dict)])
 
-    return callbacks
+    return required_modules
+
+
+
+
+
+
 
 def find_function_by_name(code, function_name):
     # Initialize variables to store the function's parameters and body
@@ -206,23 +350,21 @@ def find_function_by_name(code, function_name):
                     function_signature.split(" ")[1].split("(")[0]:
                 function_found = True
                 parameters = trimmed_line.split('(')[1].split(')')[0]
-                body += trimmed_line[trimmed_line.index('{'):].strip() + '\n'
+                body = f"function {function_name}({parameters}) " + "{\n"
                 brace_counter += 1
                 continue
         if function_found:
             # Record the body until the closing curly brace is found
-            body += line + '\n'
+            if brace_counter > 0:  # Adjust this condition to ensure it only appends body after the first brace
+                body += line + '\n'
             brace_counter += line.count('{') - line.count('}')
             if brace_counter == 0:
                 break
 
-    parameters = parameters.strip()
-    body = body.strip()
-
     if not function_found:
         return "Function not found"
     else:
-        return f'"{function_name}": "({parameters}) \n{body}\n"'
+        return body.strip()
 
 
 def find_arrow_function_by_name(code, function_name):
@@ -275,7 +417,7 @@ def find_arrow_function_by_name(code, function_name):
         if body.endswith('}'):
             body = body[:body.rfind('}')]  # Corrected to use 'rfind' to remove the last closing brace
         # Formatting the output
-        return f'"{function_name}": ({parameters}) => {{\n{body}\n}}'
+        return f'const {function_name} = ({parameters}) => {{{body}'
 
 
 def find_event_listeners_by_variable(code, variable_name):
@@ -287,42 +429,106 @@ def find_event_listeners_by_variable(code, variable_name):
     # Flags to indicate when we are within an event listener block
     in_event_listener = False
     brace_count = 0
-    current_listener = {'event_type': '', 'body': ''}
+    event_listener_start = ""
 
     for line in lines:
-        if f'{variable_name}.addEventListener(' in line:
+        if f'{variable_name}.addEventListener(' in line and not in_event_listener:
             in_event_listener = True
-            # Extract the event type from the line
-            event_type_start = line.find('("') + 2
-            event_type_end = line.find('",', event_type_start)
-            event_type = line[event_type_start:event_type_end]
-            current_listener['event_type'] = event_type
-            # Find the start of the callback function
-            function_start = line.find('function', event_type_end)
-            if function_start != -1:
-                brace_count += line.count('{') - line.count('}')
-                current_listener['body'] += line[function_start:] + '\n'
+            event_listener_start = line
+            brace_count += line.count('{') - line.count('}')
+            if brace_count == 0:  # Single line event listener
+                event_listeners.append(event_listener_start)
+                in_event_listener = False
             continue
 
         if in_event_listener:
             brace_count += line.count('{') - line.count('}')
-            current_listener['body'] += line + '\n'
+            event_listener_start += '\n' + line
             if brace_count == 0:
                 # We've reached the end of the event listener callback
+                event_listeners.append(event_listener_start.strip())
                 in_event_listener = False
-                # Cleanup the captured body
-                body_cleaned = current_listener['body'].strip()
-                if body_cleaned.endswith('}'):
-                    body_cleaned = body_cleaned[:body_cleaned.rfind('}')]
-                current_listener['body'] = body_cleaned
-                event_listeners.append(current_listener)
-                current_listener = {'event_type': '', 'body': ''}
+                event_listener_start = ""
 
     if not event_listeners:
         return "Event listener not found"
     else:
         # Formatting the results
-        formatted_output = ""
-        for listener in event_listeners:
-            formatted_output += f'Event Type: {listener["event_type"]}, Callback Function: {{\n{listener["body"]}\n}}\n\n'
-        return formatted_output.strip()
+        formatted_output = "\n\n".join(event_listeners)
+        return formatted_output
+
+
+def find_express_app_variable(code):
+    lines = code.split('\n')
+    for line in lines:
+        # Strip leading and trailing spaces from the line
+        line = line.strip()
+        # Looking for a line that assigns express() to a variable, considering various spacing
+        if 'express()' in line and '=' in line:
+            # Split the line at the '=' to isolate the variable name
+            parts = line.split('=')
+            if len(parts) > 1:
+                # The variable name could be prefixed with 'const', 'let', or 'var', including spaces
+                # We assume the variable name is the last word before the '='
+                var_name = parts[0].strip().split()[-1]
+                return var_name
+    return None
+
+
+def find_callback_bodies(code, variable_name):
+    callbacks = []
+    lines = code.split('\n')
+    in_callback = False
+    parenthesis_counter = 0
+    current_callback = ""
+
+    for line in lines:
+        if f"{variable_name}." in line and "(" in line and not in_callback:
+            in_callback = True
+            parenthesis_counter += line.count('(') - line.count(')')
+            current_callback += line + '\n'
+            if parenthesis_counter == 0:
+                callbacks.append(current_callback.strip())
+                current_callback = ""
+                in_callback = False
+            continue
+
+        if in_callback:
+            parenthesis_counter += line.count('(') - line.count(')')
+            current_callback += line + '\n'
+            if parenthesis_counter == 0:
+                callbacks.append(current_callback.strip())
+                current_callback = ""
+                in_callback = False
+
+    return callbacks
+
+
+def get_skeleton_method(code):
+    lines = code.split('\n')
+    if "=>" in lines[0] or "function" in lines[0]:
+        return f'{lines[0]}\n\t\t//...\n{lines[-1]}'
+    else:
+        return None
+
+
+def replace_function_bodies(code, definitions):
+    # Replace normal functions
+    for function_name in definitions['functions']:
+        code = re.sub(r'(function\s+' + re.escape(function_name) + r'\s*\([^)]*\)\s*\{)[\s\S]*?(\})',
+                      r'\1\n\t//...\n\2', code)
+
+    # Replace arrow functions
+    for function_name in definitions['arrow_functions']:
+        code = re.sub(r'(const\s+' + re.escape(function_name) + r'\s*=\s*\([^)]*\)\s*=>\s*\{)[\s\S]*?(\};)',
+                      r'\1\n\t//...\n\2', code)
+
+    # Replace callbacks, assuming they are attached to variables directly
+    for callback_name in definitions['callbacks']:
+        pattern = re.escape(callback_name) + r'\.addEventListener\(\s*[\w\W]+?\s*\{'
+        matches = re.findall(pattern, code, re.MULTILINE)
+        for match in matches:
+            start_pattern = re.escape(match)
+            code = re.sub(start_pattern + r'[\s\S]*?(\}\);)', r'\1\n\t//...\n\2', code)
+
+    return code

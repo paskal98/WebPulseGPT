@@ -5,7 +5,8 @@ import requests
 from openai import OpenAI
 
 from agent.JS_parser import parse_ast_conditionally, find_function_by_name, \
-    find_arrow_function_by_name, find_event_listeners_by_variable, parse_code_with_esprima_server, find_callbacks
+    find_arrow_function_by_name, find_event_listeners_by_variable, get_ast_request, \
+    parse_required_modules, find_callback_bodies, find_express_app_variable, get_skeleton_method
 from agent.core import Core
 from agent.implemented_parser import parse_file_contents
 
@@ -120,6 +121,7 @@ code3 = """
     const taskInput = document.getElementById("taskInput");
     const addTaskBtn = document.getElementById("addTaskBtn");
     const taskList = document.getElementById("taskList");
+    
 
     addTaskBtn.addEventListener("click", function () {
         const taskName = taskInput.value;
@@ -158,44 +160,20 @@ code3 = """
 """
 
 code4 = """ 
-  document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function () {
     const taskInput = document.getElementById("taskInput");
     const addTaskBtn = document.getElementById("addTaskBtn");
     const taskList = document.getElementById("taskList");
     
-    const abc = () => { 
+    const abc = () => {
         return 1 + 1; 
-    }
-    
-    app.use(session({
-        secret: "secret",
-        resave: "false",
-        saveUninitialized: "false"
-    }));
+    };
 
+    
     addTaskBtn.addEventListener("click", function () {
         const taskName = taskInput.value;
-        if (taskName) {
-            const newTask = document.createElement("li");
-            newTask.innerText = taskName;
-            taskList.appendChild(newTask);
-            taskInput.value = "";
-            setupTaskActions(newTask);
-        }
-        
-        function setupTaskActions(taskItem) {
-            taskItem.addEventListener("click", function () {
-                taskItem.classList.toggle("completed");
-            });
-    
-            taskItem.addEventListener("contextmenu", function (e) {
-                e.preventDefault();
-                taskItem.remove();
-            });
-        }
-        
-        
     });
+    
     
     function setupTaskActions(taskItem) {
             taskItem.addEventListener("click", function () {
@@ -206,7 +184,7 @@ code4 = """
                 e.preventDefault();
                 taskItem.remove();
             });
-        }
+    }
     
 });
 
@@ -283,16 +261,7 @@ passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
 // Authentication routes
-app.post("/register", async (req, res) => {
-    try {
-        const { username, password } = req.body;
-        const user = new User({ username });
-        const registeredUser = await User.register(user, password);
-        res.status(201).json(registeredUser);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
+ 
 
 app.post("/login", passport.authenticate("local"), (req, res) => {
     res.json({ message: "Login successful" });
@@ -377,17 +346,62 @@ if __name__ == "__main__":
     # out_arrow = find_arrow_function_by_name(code, arrow)
     # print(out_arrow)
 
-    # print(find_event_listeners_by_variable(code4, "app"))
+    # print(find_event_listeners_by_variable(code4, "addTaskBtn"))
 
 
 
-    # ast = parse_code_with_esprima_server(code7)
-    #
+    # ast = get_ast_request(code7)
     # defined_v_f = parse_ast_conditionally(ast)
     # print(defined_v_f)
     # print()
 
-    ast = parse_code_with_esprima_server(server)
-    defined_v_f = find_callbacks(ast)
+    # ast = get_ast_request(server)
+    # defined_v_f = parse_required_modules(ast)
+    # print(defined_v_f)
+    # print()
+    #
+    # variable_name = find_express_app_variable(server)
+    # print(variable_name)
+    #
+    # callback_bodies = find_callback_bodies(server, variable_name)
+    # for i, body in enumerate(callback_bodies):
+    #     replacer = get_skeleton_method_callback(body)
+    #     if replacer is not None:
+    #        server = server.replace(body,replacer)
+    #
+    # print(server)
+
+    ast = get_ast_request(code4)
+    defined_v_f = parse_ast_conditionally(ast)
     print(defined_v_f)
-    print()
+
+    for key in defined_v_f.keys():
+        if 'document' in defined_v_f[key]:
+            defined_v_f[key].remove('document')
+
+    print(find_function_by_name(code4, "setupTaskActions"))
+    print(find_arrow_function_by_name(code4, "abc"))
+    print(find_event_listeners_by_variable(code4, "addTaskBtn"))
+
+    for function in defined_v_f["functions"]:
+        fun = find_function_by_name(code4, function)
+        replacer = get_skeleton_method(fun)
+        if replacer is not None:
+            code4 = code4.replace(fun,replacer)
+
+    for function in defined_v_f["arrow_functions"]:
+        fun = find_arrow_function_by_name(code4, function)
+        print(fun)
+        replacer = get_skeleton_method(fun)
+        if replacer is not None:
+            code4 = code4.replace(fun,replacer)
+
+    for function in defined_v_f["callbacks"]:
+        fun = find_event_listeners_by_variable(code4, function)
+        replacer = get_skeleton_method(fun)
+        if replacer is not None:
+            code4 = code4.replace(fun,replacer)
+
+    print(code4)
+
+
