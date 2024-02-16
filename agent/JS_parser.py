@@ -104,6 +104,46 @@ def find_function_by_name_old(code, function_name):
     else:
         return f'"{function_name}": "({parameters}) \n{body}\n"'
 
+def find_function_by_name_old2(code, function_name):
+    # Initialize variables to store the function's parameters and body
+    parameters = ""
+    body = ""
+
+    # Split the code by lines
+    lines = code.split('\n')
+
+    # Initialize a flag to indicate whether the function has been found
+    function_found = False
+
+    # Initialize a counter to keep track of the curly braces
+    brace_counter = 0
+
+    for i, line in enumerate(lines):
+        trimmed_line = line.strip()
+        # Improved check for the function declaration
+        if function_name in trimmed_line and "function" in trimmed_line and "(" in trimmed_line and "{" in trimmed_line:
+            function_signature = trimmed_line[:trimmed_line.index('{')].strip()
+            # Check if the function name exactly matches what we're looking for
+            if function_signature.startswith("function") and function_name == \
+                    function_signature.split(" ")[1].split("(")[0]:
+                function_found = True
+                parameters = trimmed_line.split('(')[1].split(')')[0]
+                body = f"function {function_name}({parameters}) " + "{\n"
+                brace_counter += 1
+                continue
+        if function_found:
+            # Record the body until the closing curly brace is found
+            if brace_counter > 0:  # Adjust this condition to ensure it only appends body after the first brace
+                body += line + '\n'
+            brace_counter += line.count('{') - line.count('}')
+            if brace_counter == 0:
+                break
+
+    if not function_found:
+        return "Function not found"
+    else:
+        return body.strip()
+
 def find_arrow_function_by_name_old(code, function_name):
     # Initialize variables to store the function's parameters and body
     parameters = ""
@@ -155,6 +195,58 @@ def find_arrow_function_by_name_old(code, function_name):
             body = body[:body.rfind('}')]  # Corrected to use 'rfind' to remove the last closing brace
         # Formatting the output
         return f'"{function_name}": ({parameters}) => {{\n{body}\n}}'
+
+def find_arrow_function_by_name_old2(code, function_name):
+    # Initialize variables to store the function's parameters and body
+    parameters = ""
+    body = ""
+    function_found = False
+    processing_body = False
+    brace_counter = 0
+
+    # Normalize the code to ensure consistent parsing
+    code_lines = code.split('\n')
+    for line in code_lines:
+        stripped_line = line.strip()
+        if f"const {function_name} =" in stripped_line and "=>" in stripped_line and not function_found:
+            function_found = True
+            # Extract parameters
+            parts = stripped_line.split('=>', 1)
+            parameters_part = parts[0].split('=')[1].strip()
+            parameters = parameters_part.strip("()")
+
+            body_part = parts[1].strip()
+            if body_part.startswith('{'):
+                # Handle potentially multiline body starting on the same line
+                processing_body = True
+                brace_counter += body_part.count('{') - body_part.count('}')
+                if brace_counter > 0:
+                    body += body_part[1:] + '\n'  # Remove the opening brace for consistency in output
+                else:
+                    body = body_part[1:-1]  # Single-line function body
+                    break
+            else:
+                # Single-line arrow function without braces
+                body = body_part
+                break
+        elif function_found and processing_body:
+            # Accumulate body lines for multiline arrow functions
+            body += line + '\n'
+            brace_counter += line.count('{') - line.count('}')
+            if brace_counter == 0:
+                # Once all braces are closed, remove the last line's newline and trailing brace
+                body = body.rstrip()  # Remove trailing whitespace and newline
+                processing_body = False
+                break
+
+    if not function_found:
+        return "Function not found"
+    else:
+        # Correcting the body's ending in case of multiline functions
+        if body.endswith('}'):
+            body = body[:body.rfind('}')]  # Corrected to use 'rfind' to remove the last closing brace
+        # Formatting the output
+        return f'const {function_name} = ({parameters}) => {{{body}'
 
 def find_event_listeners_by_variable_old(code, variable_name):
     event_listeners = []
@@ -294,7 +386,6 @@ def parse_ast_conditionally(ast):
         "arrow_functions": arrow_functions,
     }
 
-
 def parse_required_modules(ast):
     required_modules = {}
     stack = [ast]  # Initialize stack with the root AST node
@@ -326,6 +417,8 @@ def parse_required_modules(ast):
 
 
 
+
+
 def find_function_by_name(code, function_name):
     # Initialize variables to store the function's parameters and body
     parameters = ""
@@ -342,15 +435,20 @@ def find_function_by_name(code, function_name):
 
     for i, line in enumerate(lines):
         trimmed_line = line.strip()
-        # Improved check for the function declaration
-        if function_name in trimmed_line and "function" in trimmed_line and "(" in trimmed_line and "{" in trimmed_line:
+        # Improved check for the function declaration to include async functions
+        if function_name in trimmed_line and "function" in trimmed_line and "(" in trimmed_line and "{" in trimmed_line or \
+           "async" in trimmed_line and function_name in trimmed_line and "(" in trimmed_line and "{" in trimmed_line:
             function_signature = trimmed_line[:trimmed_line.index('{')].strip()
-            # Check if the function name exactly matches what we're looking for
-            if function_signature.startswith("function") and function_name == \
-                    function_signature.split(" ")[1].split("(")[0]:
+            # Check if the function name exactly matches what we're looking for, including async functions
+            is_async = "async " in function_signature
+            function_split = function_signature.split(" ")
+            function_index = 1 if not is_async else 2
+            if (is_async or function_signature.startswith("function")) and function_name == \
+                    function_split[function_index].split("(")[0]:
                 function_found = True
                 parameters = trimmed_line.split('(')[1].split(')')[0]
-                body = f"function {function_name}({parameters}) " + "{\n"
+                async_prefix = "async " if is_async else ""
+                body = f"{async_prefix}function {function_name}({parameters}) " + "{\n"
                 brace_counter += 1
                 continue
         if function_found:
@@ -371,6 +469,7 @@ def find_arrow_function_by_name(code, function_name):
     # Initialize variables to store the function's parameters and body
     parameters = ""
     body = ""
+    async_prefix = ""
     function_found = False
     processing_body = False
     brace_counter = 0
@@ -379,45 +478,49 @@ def find_arrow_function_by_name(code, function_name):
     code_lines = code.split('\n')
     for line in code_lines:
         stripped_line = line.strip()
-        if f"const {function_name} =" in stripped_line and "=>" in stripped_line and not function_found:
-            function_found = True
-            # Extract parameters
-            parts = stripped_line.split('=>', 1)
-            parameters_part = parts[0].split('=')[1].strip()
-            parameters = parameters_part.strip("()")
+        # Enhanced check to include async functions properly
+        if "const " + function_name + " =" in stripped_line and "=>" in stripped_line:
+            # Correctly determine if the function is async and adjust for its presence
+            is_async = "= async (" in stripped_line or (stripped_line.startswith("async") and function_name in stripped_line)
+            async_prefix = "async " if is_async else ""
 
+            # Handling for when the function definition starts (considering 'async ' length)
+            function_definition_start = stripped_line.find("= ") + 2
+
+            arrow_function_definition = stripped_line[function_definition_start:]
+
+            # Split at the arrow to separate parameters from the body
+            parts = arrow_function_definition.split('=>', 1)
+            parameters = parts[0].strip().lstrip("async ").strip("()")
             body_part = parts[1].strip()
+
             if body_part.startswith('{'):
-                # Handle potentially multiline body starting on the same line
+                # Handle multiline body beginning
                 processing_body = True
+                function_found = True
                 brace_counter += body_part.count('{') - body_part.count('}')
-                if brace_counter > 0:
-                    body += body_part[1:] + '\n'  # Remove the opening brace for consistency in output
-                else:
-                    body = body_part[1:-1]  # Single-line function body
-                    break
+                body += body_part[1:] + '\n' if brace_counter > 0 else body_part[1:-1]
             else:
-                # Single-line arrow function without braces
+                # Single-line body without braces
+                function_found = True
                 body = body_part
-                break
+                break  # No further processing needed for single-line function
         elif function_found and processing_body:
-            # Accumulate body lines for multiline arrow functions
             body += line + '\n'
             brace_counter += line.count('{') - line.count('}')
             if brace_counter == 0:
-                # Once all braces are closed, remove the last line's newline and trailing brace
-                body = body.rstrip()  # Remove trailing whitespace and newline
+                body = body[:body.rfind('\n')].rstrip()  # Adjust for correct body end handling
                 processing_body = False
                 break
 
     if not function_found:
         return "Function not found"
     else:
-        # Correcting the body's ending in case of multiline functions
-        if body.endswith('}'):
-            body = body[:body.rfind('}')]  # Corrected to use 'rfind' to remove the last closing brace
-        # Formatting the output
-        return f'const {function_name} = ({parameters}) => {{{body}'
+        # Correctly handle the closure of the function body for multiline functions
+        if processing_body and body.endswith('}'):
+            body = body[:body.rfind('}')]
+        # Ensure the async prefix is correctly included for async functions
+        return f'const {function_name} = {async_prefix}({parameters}) => {{{body}'
 
 
 def find_event_listeners_by_variable(code, variable_name):

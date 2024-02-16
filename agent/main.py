@@ -164,11 +164,19 @@ document.addEventListener("DOMContentLoaded", function () {
     const taskInput = document.getElementById("taskInput");
     const addTaskBtn = document.getElementById("addTaskBtn");
     const taskList = document.getElementById("taskList");
+    const addTaskBtn2 = document.getElementById("taskListQ");
     
     const abc = () => {
         return 1 + 1; 
     };
 
+    const dba = async () => {
+        return 2 + 2; 
+    };
+
+    addTaskBtn2.addEventListener("click", async function () {
+        // Your asynchronous code here
+    });
     
     addTaskBtn.addEventListener("click", function () {
         const taskName = taskInput.value;
@@ -184,6 +192,25 @@ document.addEventListener("DOMContentLoaded", function () {
                 e.preventDefault();
                 taskItem.remove();
             });
+    }
+    
+    async function displayTasks(sortByValue) {
+        try {
+            const response = await fetch(`/tasks?sortBy=${sortByValue}`); // Assuming the server supports sorting based on query parameters
+            const data = await response.json();
+            taskList.innerHTML = ""; // Clear the task list before displaying the new sorted tasks
+            data.forEach((task) => {
+                const newTask = document.createElement("li");
+                newTask.innerText = task.name;
+                if (task.status === "Completed") {
+                    newTask.classList.add("completed");
+                }
+                taskList.appendChild(newTask);
+                setupTaskActions(newTask);
+            });
+        } catch (error) {
+            console.error("Error fetching tasks:", error);
+        }
     }
     
 });
