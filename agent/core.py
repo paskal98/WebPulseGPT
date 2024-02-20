@@ -8,11 +8,12 @@ from openai import OpenAI
 from agent.blank_parser import parse
 from agent.consilidate_dict import consolidate_duplicates
 from agent.implemented_parser import parse_file_contents
+from agent.merge import MergeFile
 from agent.plan_parser import parse_development_plan, parse_development_plan_v2
 from agent.prebuild_file_parse import escape_snippet
 from agent.tasks_parser import parse_tasks
 
-client = OpenAI(api_key="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")
+client = OpenAI(api_key="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")
 
 session_id = str(uuid.uuid4())
 
@@ -71,7 +72,7 @@ def parse_packages_from_code(code):
 
 class Core:
     def __init__(self):
-        self.merged_project = []
+        self.merged_files = []
         self.project_files = []
         self.files = None
         self.implemented_project = []
@@ -288,7 +289,7 @@ class Core:
             summary = file.read().strip()
 
         implemented = ""
-        for dictionary in self.merged_project:
+        for dictionary in self.merged_files:
             for key, value in dictionary.items():
                 implemented += f"{key}: {value}\n\n"
             implemented += "\n----------\n"
@@ -309,44 +310,35 @@ class Core:
         with open('output/final_content.txt', 'w', encoding="utf-8") as file:
             file.write(final_content)
 
-    def on_merge_updates(self):
-        with open("prompts/merge.prompt", "r") as file:
-            merge = file.read().strip()
 
-        all_keys = {key for d in self.project_files for key in d.keys()}
+    def on_merge_files(self):
+        merge = MergeFile(self.project_files,client)
+        self.merged_files = merge.merge_files()
+
+    def on_modularity_html_js(self):
+        self.clear_history_role()
+        with open("prompts/file_modularity_html_js.prompt", "r") as file:
+            modularity_html_js = file.read().strip()
+
+        all_keys = {key for d in self.merged_files for key in d.keys()}
+
 
         for key in all_keys:
-            self.clear_history_role()
-            self.conversation_history_roles.append({"role": "system", "content": merge})
-            on_start = True
-            request = ""
+            for dictionary in self.merged_files:
+                if key in dictionary and ".html" in key:
+                    modularity_html_js = modularity_html_js.replace("{{ html }}", dictionary[key])
+                if key in dictionary and "script.js" in key:
+                    modularity_html_js = modularity_html_js.replace("{{ js }}", dictionary[key])
 
-            for dictionary in self.project_files:
-                if key in dictionary:
-                    file = f"```{key}: {dictionary[key]}```\n\n"
 
-                    if on_start:
-                        request = file
-                        on_start = False
-                    else:
-                        self.conversation_history_roles.append(
-                            {"role": "user", "content": request + "\n\n AND \n\n" + file})
-                        response = self.ai_conversation(None, 'role').content
-                        request = response
-                        print(request + "\n\n\n------\n\n\n")
 
-            self.merged_project.append({key: request})
+        self.conversation_history_roles.append({"role": "system", "content": modularity_html_js})
+        response = self.ai_conversation(None, 'role').content
 
-        with open('output/merged_project.txt', 'w', encoding="utf-8") as file:
-            for dictionary in self.merged_project:
-                for key, value in dictionary.items():
-                    file.write(f"{key}: {value}\n\n")
-                file.write("\n----------\n")
-            file.write("\n\n\n\n")
-
-            for dictionary in self.merged_project:
-                for key in dictionary.keys():
-                    file.write("- " + key + "\n")
+        with open('output/file_modularity_html_js.txt', 'w', encoding="utf-8") as file:
+            file.write(modularity_html_js)
+        with open('output/file_modularity_html_js_RESPOSNE.txt', 'w', encoding="utf-8") as file:
+            file.write(response)
 
     def on_check_modularity(self):
         self.clear_history_role()
@@ -355,7 +347,7 @@ class Core:
         self.conversation_history_roles.append({"role": "system", "content": modularity})
 
 
-        for dictionary in self.merged_project:
+        for dictionary in self.merged_files:
             for key, value in dictionary.items():
                 if ".html" in key:
                     self.conversation_history_roles.append(
@@ -369,7 +361,7 @@ class Core:
 
         self.clear_history_role()
         self.conversation_history_roles.append({"role": "system", "content": modularity})
-        for dictionary in self.merged_project:
+        for dictionary in self.merged_files:
             for key, value in dictionary.items():
                 if ".js" in key and not "express" in value or not "mongoose" in value:
                     self.conversation_history_roles.append(
@@ -383,7 +375,7 @@ class Core:
 
     def generate_bash(self):
         packages = []
-        for dictionary in self.merged_project:
+        for dictionary in self.merged_files:
             for key, value in dictionary.items():
                 add_to_build_script(key, escape_snippet(key, value))
                 if "require(" in value:

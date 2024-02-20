@@ -635,3 +635,53 @@ def replace_function_bodies(code, definitions):
             code = re.sub(start_pattern + r'[\s\S]*?(\}\);)', r'\1\n\t//...\n\2', code)
 
     return code
+
+
+
+def count_event_listeners(js_code):
+    # Regular expression to match both '.addEventListener' and '.removeEventListener'
+    pattern = r'\.(add|remove)EventListener'
+    # Find all occurrences of the pattern
+    matches = re.findall(pattern, js_code)
+    # Return the number of occurrences
+    return len(matches)
+
+
+def split_event_listeners(js_code, object_name):
+    # Initialize an empty list to store the captured event listener strings
+    event_listeners = []
+
+    # Initialize a pointer to keep track of our position in the string
+    index = 0
+
+    # Loop through the code to find each event listener related to the specified object
+    while index < len(js_code):
+        # Find the next occurrence of the object name followed by '.addEventListener' or '.removeEventListener'
+        event_listener_start = js_code.find(f'{object_name}.add', index)
+        if event_listener_start == -1:
+            event_listener_start = js_code.find(f'{object_name}.remove', index)
+            if event_listener_start == -1:
+                # If no more event listeners are found, break out of the loop
+                break
+
+        # Find the opening parenthesis of the event listener declaration
+        start_parenthesis = js_code.find('(', event_listener_start)
+
+        # Initialize counters for parentheses to identify the end of the event listener block
+        open_parens = 1
+        index = start_parenthesis + 1
+
+        # Loop through the code starting after the opening parenthesis to find the matching closing parenthesis
+        while index < len(js_code) and open_parens > 0:
+            if js_code[index] == '(':
+                open_parens += 1
+            elif js_code[index] == ')':
+                open_parens -= 1
+            index += 1
+
+        # Once the matching closing parenthesis is found, extract the event listener block
+        if open_parens == 0:
+            event_listener_block = js_code[event_listener_start:index]
+            event_listeners.append(event_listener_block)
+
+    return event_listeners

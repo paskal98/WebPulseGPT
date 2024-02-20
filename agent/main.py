@@ -6,7 +6,8 @@ from openai import OpenAI
 
 from agent.JS_parser import parse_ast_conditionally, find_function_by_name, \
     find_arrow_function_by_name, find_event_listeners_by_variable, get_ast_request, \
-    parse_required_modules, find_callback_bodies, find_express_app_variable, get_skeleton_method
+    parse_required_modules, find_callback_bodies, find_express_app_variable, get_skeleton_method, count_event_listeners, \
+    split_event_listeners
 from agent.core import Core
 from agent.implemented_parser import parse_file_contents
 
@@ -75,47 +76,6 @@ code = """
 });
     """
 
-code2 = """
-document.addEventListener("DOMContentLoaded", function () {
-    const taskInput = document.getElementById("taskInput");
-    const addTaskBtn = document.getElementById("addTaskBtn");
-    const taskList = document.getElementById("taskList");
-
-    addTaskBtn.addEventListener("click", function () {
-        const taskName = taskInput.value;
-        if (taskName) {
-            const newTask = document.createElement("li");
-            newTask.innerText = taskName;
-            taskList.appendChild(newTask);
-            taskInput.value = "";
-            setupTaskActions(newTask);
-        }
-        
-        if (taskName) {
-            const newTask = document.createElement("li");
-            newTask.innerText = taskName;
-            taskList.appendChild(newTask);
-            taskInput.value = "";
-            setupTaskActions(newTask);
-        }
-        
-        taskItem.addEventListener("click", function () {
-            taskItem.classList.toggle("completed");
-        });
-    });
-
-    function setupTaskActions(taskItem) {
-        taskItem.addEventListener("click", function () {
-            taskItem.classList.toggle("completed");
-        });
-
-        taskItem.addEventListener("contextmenu", function (e) {
-            e.preventDefault();
-            taskItem.remove();
-        });
-    }
-});
-"""
 
 code3 = """
     const taskInput = document.getElementById("taskInput");
@@ -217,36 +177,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
 """
 
-code7 = '''
-
-
-function setupTaskActions(taskItem) {
-    const taskName = taskInput.value;
-    if (taskName) {
-        const newTask = document.createElement("li");
-        newTask.innerText = taskName;
-        taskList.appendChild(newTask);
-        taskInput.value = "";
-        setupTaskActions(newTask);
-    }
-
-    taskItem.addEventListener("contextmenu", function (e) {
-        e.preventDefault();
-        taskItem.remove();
-    });
-
-    function asd(taskItem) {
-        taskItem.addEventListener("click", function () {
-            taskItem.classList.toggle("completed");
-        });
-
-        taskItem.addEventListener("contextmenu", function (e) {
-            e.preventDefault();
-            taskItem.remove();
-        });
-    }
-}
-'''
 
 server = """
  // app.js
@@ -274,11 +204,10 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // Connect to MongoDB
-mongoose.connect("mongodb://localhost/todo-app", {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-});
-
+mongoose.connect('mongodb://localhost/todoapp', { useNewUrlParser: true, useUnifiedTopology: true })
+  
+  
+  
 // Define User schema and model
 // ... (User schema and model setup)
 
@@ -320,115 +249,212 @@ app.listen(3000, () => {
 });
 """
 
+code2_1 = """
+// script.js
 
+document.addEventListener('DOMContentLoaded', function() {
+    const taskForm = document.getElementById('taskForm');
+    const taskInput = document.getElementById('taskInput');
+    const taskList = document.getElementById('taskList');
+    
+    taskList.addEventListener('click', function(event) {
+        if (event.target.tagName === 'LI') {
+            toggleTaskCompletion(event.target); // Call function to toggle task completion
+        }
+    });
 
+    taskForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        if (taskInput.value) {
+            addNewTask(taskInput.value); // Call function to add new task
+            taskInput.value = "";
+        }
+    });
+
+    taskList.addEventListener('contextmenu', function(event) {
+        event.preventDefault();
+        if (event.target.tagName === 'LI') {
+            deleteTask(event.target); // Call function to delete task
+        }
+    });
+
+    // Function to add new task
+    function addNewTask(taskName) {
+        const newTask = document.createElement('li');
+        newTask.innerText = taskName;
+        taskList.appendChild(newTask);
+    }
+
+    // Function to toggle task completion
+    function toggleTaskCompletion(task) {
+        task.classList.toggle('completed');
+    }
+
+    // Function to delete task
+    function deleteTask(task) {
+        task.remove();
+    }
+}); 
+"""
+
+server2_1 = """
+// server.js
+
+const express = require('express');
+const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
+
+const app = express();
+
+// Connect to MongoDB
+mongoose.connect('mongodb://localhost/todoApp', { useNewUrlParser: true, useUnifiedTopology: true });
+
+// Define task schema
+const TaskSchema = new mongoose.Schema({
+    name: String,
+    completed: { type: Boolean, default: false }
+});
+const Task = mongoose.model('Task', TaskSchema);
+
+// Middleware
+app.use(bodyParser.json());
+
+// API endpoints
+app.get('/tasks', async (req, res) => {
+    try {
+        const tasks = await Task.find();
+        res.json(tasks);
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+});
+
+app.post('/tasks', async (req, res) => {
+    const task = new Task({ name: req.body.name });
+    try {
+        const newTask = await task.save();
+        res.json(newTask);
+    } catch (error) {
+        res.status(400).send(error.message);
+    }
+});
+
+app.put('/tasks/:id', async (req, res) => {
+    try {
+        const updatedTask = await Task.findByIdAndUpdate(req.params.id, { completed: req.body.completed }, { new: true });
+        res.json(updatedTask);
+    } catch (error) {
+        res.status(400).send(error.message);
+    }
+});
+
+app.delete('/tasks/:id', async (req, res) => {
+    try {
+        await Task.findByIdAndDelete(req.params.id);
+        res.send('Task deleted successfully');
+    } catch (error) {
+        res.status(400).send(error.message);
+    }
+});
+
+// Start the server
+const PORT = 5000;
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+}); 
+"""
 
 if __name__ == "__main__":
-    # print("START...\n\n")
-    # core.on_start()
-    #
-    # print("Description...\n\n")
-    # core.on_description()
-    #
-    # print("Technologies...\n\n")
-    # core.on_technologies()
-    #
-    # print("Tasks...\n\n")
-    # core.on_tasks()
-    #
-    # print("Planing...\n\n")
-    # core.on_planing()
-    #
-    # print("Project Structure...\n\n")
-    # core.on_project_structure()
-    #
-    # print("Implementing Tasks..\n\n")
-    # core.on_developing_tasks()
-    #
-    # print("Merge...\n\n")
-    # core.on_merge_updates()
-    #
-    # # print("Modularity...\n\n")
-    # # core.on_check_modularity()
-    #
-    # print("Summary...\n\n")
-    # core.on_summary()
-    #
-    # print("Generate Build File (build.sh)...\n\n")
-    # core.generate_bash()
+    print("START...\n\n")
+    core.on_start()
+
+    print("Description...\n\n")
+    core.on_description()
+
+    print("Technologies...\n\n")
+    core.on_technologies()
+
+    print("Tasks...\n\n")
+    core.on_tasks()
+
+    print("Planing...\n\n")
+    core.on_planing()
+
+    print("Project Structure...\n\n")
+    core.on_project_structure()
+
+    print("Implementing Tasks..\n\n")
+    core.on_developing_tasks()
+
+    print("Merge Files...\n\n")
+    core.on_merge_files()
+
+    print("Modularity Files HTML JS...\n\n")
+    core.on_modularity_html_js()
+
+    # print("Modularity...\n\n")
+    # core.on_check_modularity()
+
+    print("Summary...\n\n")
+    core.on_summary()
+
+    print("Generate Build File (build.sh)...\n\n")
+    core.generate_bash()
 
 
 
-    # defined_v_f = parse_ast_conditionally(ast10)
-    # print(defined_v_f)
-    # print()
 
-
-
-    # function_name = "setupTaskActions"
-    # out = find_function_by_name(code4, function_name)
-    # print(out)
-
-    # arrow = "addTask"
-    # out_arrow = find_arrow_function_by_name(code, arrow)
-    # print(out_arrow)
-
-    # print(find_event_listeners_by_variable(code4, "addTaskBtn"))
-
-
-
-    # ast = get_ast_request(code7)
-    # defined_v_f = parse_ast_conditionally(ast)
-    # print(defined_v_f)
-    # print()
-
-    # ast = get_ast_request(server)
+    # ast = get_ast_request(server2_1)
     # defined_v_f = parse_required_modules(ast)
     # print(defined_v_f)
-    # print()
     #
-    # variable_name = find_express_app_variable(server)
+    # variable_name = find_express_app_variable(server2_1)
     # print(variable_name)
     #
-    # callback_bodies = find_callback_bodies(server, variable_name)
+    # callback_bodies = find_callback_bodies(server2_1, variable_name)
     # for i, body in enumerate(callback_bodies):
-    #     replacer = get_skeleton_method_callback(body)
+    #     replacer = get_skeleton_method(body)
     #     if replacer is not None:
-    #        server = server.replace(body,replacer)
+    #        server2_1 = server2_1.replace(body,replacer)
     #
-    # print(server)
+    # print(server2_1)
 
-    ast = get_ast_request(code4)
-    defined_v_f = parse_ast_conditionally(ast)
-    print(defined_v_f)
-
-    for key in defined_v_f.keys():
-        if 'document' in defined_v_f[key]:
-            defined_v_f[key].remove('document')
-
-    print(find_function_by_name(code4, "setupTaskActions"))
-    print(find_arrow_function_by_name(code4, "abc"))
-    print(find_event_listeners_by_variable(code4, "addTaskBtn"))
-
-    for function in defined_v_f["functions"]:
-        fun = find_function_by_name(code4, function)
-        replacer = get_skeleton_method(fun)
-        if replacer is not None:
-            code4 = code4.replace(fun,replacer)
-
-    for function in defined_v_f["arrow_functions"]:
-        fun = find_arrow_function_by_name(code4, function)
-        print(fun)
-        replacer = get_skeleton_method(fun)
-        if replacer is not None:
-            code4 = code4.replace(fun,replacer)
-
-    for function in defined_v_f["callbacks"]:
-        fun = find_event_listeners_by_variable(code4, function)
-        replacer = get_skeleton_method(fun)
-        if replacer is not None:
-            code4 = code4.replace(fun,replacer)
-
-    print(code4)
+    # ast = get_ast_request(code2_1)
+    # defined_v_f = parse_ast_conditionally(ast)
+    # print(defined_v_f)
+    #
+    # for key in defined_v_f.keys():
+    #     if 'document' in defined_v_f[key]:
+    #         defined_v_f[key].remove('document')
+    #
+    # for function in defined_v_f["functions"]:
+    #     fun = find_function_by_name(code2_1, function)
+    #     replacer = get_skeleton_method(fun)
+    #     if replacer is not None:
+    #         code2_1 = code2_1.replace(fun,replacer)
+    #
+    # for function in defined_v_f["arrow_functions"]:
+    #     fun = find_arrow_function_by_name(code2_1, function)
+    #     replacer = get_skeleton_method(fun)
+    #     if replacer is not None:
+    #         code2_1 = code2_1.replace(fun,replacer)
+    #
+    #
+    # for function in defined_v_f["callbacks"]:
+    #     fun = find_event_listeners_by_variable(code2_1, function)
+    #
+    #     if count_event_listeners(fun) > 1:
+    #         event_listeners = split_event_listeners(fun, function)
+    #
+    #         for event in event_listeners:
+    #             replacer = get_skeleton_method(event)
+    #             if replacer is not None:
+    #                 code2_1 = code2_1.replace(event, replacer)
+    #     else:
+    #         replacer = get_skeleton_method(fun)
+    #         if replacer is not None:
+    #             code2_1 = code2_1.replace(fun,replacer)
+    #
+    # print(code2_1)
 
 
