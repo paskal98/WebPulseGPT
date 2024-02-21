@@ -7,7 +7,7 @@ from openai import OpenAI
 from agent.JS_parser import parse_ast_conditionally, find_function_by_name, \
     find_arrow_function_by_name, find_event_listeners_by_variable, get_ast_request, \
     parse_required_modules, find_callback_bodies, find_express_app_variable, get_skeleton_method, count_event_listeners, \
-    split_event_listeners
+    split_event_listeners, extract_function
 from agent.core import Core
 from agent.implemented_parser import parse_file_contents
 
@@ -388,18 +388,18 @@ if __name__ == "__main__":
 
     print("Merge Files...\n\n")
     core.on_merge_files()
-
-    print("Modularity Files HTML JS...\n\n")
-    core.on_modularity_html_js()
-
-    # print("Modularity...\n\n")
-    # core.on_check_modularity()
-
-    print("Summary...\n\n")
-    core.on_summary()
-
-    print("Generate Build File (build.sh)...\n\n")
-    core.generate_bash()
+    #
+    # print("Modularity Files HTML JS...\n\n")
+    # core.on_modularity_html_js()
+    #
+    # # print("Modularity...\n\n")
+    # # core.on_check_modularity()
+    #
+    # print("Summary...\n\n")
+    # core.on_summary()
+    #
+    # print("Generate Build File (build.sh)...\n\n")
+    # core.generate_bash()
 
 
 
@@ -457,4 +457,8 @@ if __name__ == "__main__":
     #
     # print(code2_1)
 
-
+    # function_start = "taskList.addEventListener('click', function(event) {"
+    # extracted_function = extract_function(code2_1, function_start)
+    #
+    # # Display the extracted function
+    # print(extracted_function)

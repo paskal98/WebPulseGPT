@@ -1,38 +1,43 @@
-In this task, you are given fragments of code that contain a function with a certain name. Your job is to find this function in each code fragment and update its body to a new version, as provided in the task. Carefully process each piece of code to accurately identify the target function by name, replace its content with the new one given in the task, and return only the updated function's body as a result. Make sure that other parts of the content remain unchanged and are not included in the answer.
+You are given multiple versions of a specific JavaScript function, each identified by the same name. Your task is to first check if all the provided versions are identical. If they are, simply return one of these identical versions as the output. If the versions are not identical, your next step is to analyze these versions to merge the best aspects of each into a single, enhanced version of the function. This process involves examining the structure, logic, and syntax of each version to identify the most efficient, readable, and maintainable elements. The goal is to create a unified function that embodies the best practices and improvements identified across all versions. The final output should respect the original declaration style of the function (standard, callback, or arrow) and be the complete function, including its declaration and the merged body.
 
 Input Data:
 
 The name of the function to be updated: {{ function }}
 
-Fragments of code containing versions of the function that need to be updated:
+Versions of the function to be updated:
 {{ codes }}
 
 Task:
 
-Identify the target function in the provided code fragments by name.
-Precisely replace the function's body with the new one, maintaining the code's structure and formatting.
-Return the updated function's body as the result, without including any other part of the content.
+Identify Identical Versions: Determine if all provided versions of the function are exactly the same.
+Handle Identical Versions: If versions are identical, return one of them as the output.
+Analyze Function Versions (if not identical): Review the versions to understand their differences and identify the strengths of each.
+Merge Best Aspects (if not identical): Combine the best elements from each version into a single, improved function, focusing on optimizing logic, enhancing readability, and ensuring maintainability.
+Return the Unified or Identical Function: Output the fully merged function, or one of the identical versions, including its declaration and synthesized body.
+
 Example:
 
-Function name to update: calculateInterest
+Function name to merge: processData
+Versions of the function provided for merging:
 
-New function body:
+function processData(data) {
+    let result = data.map(item => item.value);
+    return result;
+}
 
-python
-Copy code
-def calculateInterest(principal, rate, time):
-    return principal * (1 + rate * time)
-Code fragment to update:
+const processData = (data) => {
+    return data.filter(item => item.isActive).map(item => item.value);
+}
 
-python
-Copy code
-def calculateInterest(principal, rate, years):
-    interest = principal * rate * years / 100
-    return interest
-Expected GPT-3 answer:
+function processData(data) {
+    return data.map(item => {
+        return item.value;
+    }).filter(value => value !== undefined);
+}
 
-python
-Copy code
-def calculateInterest(principal, rate, time):
-    return principal * (1 + rate * time)
+Expected GPT-3 Answer:
+GPT-3 is expected to synthesize the provided versions, merging the filtering for active items, mapping to item values, and excluding undefined values. A possible merged version could look like this:
 
+const processData = (data) => {
+    return data.filter(item => item.isActive).map(item => item.value).filter(value => value !== undefined);
+}
