@@ -3,7 +3,9 @@ from collections import defaultdict
 from openai import OpenAI
 
 from agent.JS_parser import get_ast_request, find_function_by_name, get_skeleton_method, find_arrow_function_by_name, \
-    find_event_listeners_by_variable, count_event_listeners, split_event_listeners, parse_ast_conditionally
+    find_event_listeners_by_variable, count_event_listeners, split_event_listeners, parse_ast_conditionally, \
+    parse_required_modules, find_express_app_variable, find_callback_bodies
+from agent.prebuild_file_parse import escape_snippet
 
 
 class MergeFile:
@@ -19,7 +21,122 @@ class MergeFile:
     def get_keys(self):
         return {key for d in self.project_files for key in d.keys()}
 
+    def get_key_counts(self):
+        key_counts = {}
 
+        for dictionary in self.project_files:
+            for key in dictionary.keys():
+                if key.endswith('.js'):
+                    if key in key_counts:
+                        key_counts[key] += 1
+                    else:
+                        key_counts[key] = 1
+
+        for key, count in key_counts.items():
+            print(f"{key}: {count}")
+
+        return key_counts
+
+    def get_client_js_structure(self):
+        key_counts = self.get_key_counts()
+
+        scripts = defaultdict(list)
+        scripts_fun = defaultdict(list)
+        scripts_request_ai = defaultdict(list)
+
+        for key in key_counts:
+
+            if key_counts[key] > 1:
+
+                for dictionary in self.project_files:
+
+                    if key in dictionary:
+                        if not "require('express')" in dictionary[key] and not "require('mongoose')" in dictionary[key]:
+                            code = dictionary[key]
+                            scripts_request_ai[key].append(code)
+
+                            ast = get_ast_request(code)
+                            defined_v_f = parse_ast_conditionally(ast)
+                            print(defined_v_f)
+
+                            for key_vf in defined_v_f.keys():
+                                if 'document' in defined_v_f[key_vf]:
+                                    defined_v_f[key_vf].remove('document')
+
+                            for function in defined_v_f["functions"]:
+                                fun = find_function_by_name(code, function)
+                                replacer = get_skeleton_method(fun)
+                                if replacer is not None:
+                                    code = code.replace(fun, replacer)
+                                    if replacer not in scripts_fun[key]:
+                                        scripts_fun[key].append(replacer)
+
+                            for function in defined_v_f["arrow_functions"]:
+                                fun = find_arrow_function_by_name(code, function)
+                                replacer = get_skeleton_method(fun)
+                                if replacer is not None:
+                                    code = code.replace(fun, replacer)
+                                    if replacer not in scripts_fun[key]:
+                                        scripts_fun[key].append(replacer)
+
+                            for function in defined_v_f["callbacks"]:
+                                fun = find_event_listeners_by_variable(code, function)
+
+                                if count_event_listeners(fun) > 1:
+                                    event_listeners = split_event_listeners(fun, function)
+
+                                    for event in event_listeners:
+                                        replacer = get_skeleton_method(event)
+                                        if replacer is not None:
+                                            code = code.replace(event, replacer)
+                                            if replacer not in scripts_fun[key]:
+                                                scripts_fun[key].append(replacer)
+                                else:
+                                    replacer = get_skeleton_method(fun)
+                                    if replacer is not None:
+                                        code = code.replace(fun, replacer)
+                                        if replacer not in scripts_fun[key]:
+                                            scripts_fun[key].append(replacer)
+
+                            scripts[key].append(code)
+
+        return scripts, scripts_fun, scripts_request_ai
+
+    def get_server_js_structure(self):
+        key_counts = self.get_key_counts()
+
+        scripts = defaultdict(list)
+        scripts_fun = defaultdict(list)
+        scripts_request_ai = defaultdict(list)
+
+        for key in key_counts:
+
+            if key_counts[key] > 1:
+
+                for dictionary in self.project_files:
+
+                    if key in dictionary:
+                        if "require('express')" in dictionary[key]:
+                            code = dictionary[key]
+                            scripts_request_ai[key].append(code)
+
+                            ast = get_ast_request(code)
+                            defined_v_f = parse_required_modules(ast)
+                            print(defined_v_f)
+
+                            variable_name = find_express_app_variable(code)
+
+                            callback_bodies = find_callback_bodies(code, variable_name)
+                            for i, body in enumerate(callback_bodies):
+                                replacer = get_skeleton_method(body)
+                                if replacer is not None:
+                                    code = code.replace(body, replacer)
+                                    if replacer not in scripts_fun[key]:
+                                        scripts_fun[key].append(replacer)
+
+                            scripts[key].append(code)
+
+        return scripts, scripts_fun, scripts_request_ai
 
     def ai_conversation(self):
 
@@ -79,115 +196,97 @@ class MergeFile:
         return self.merged_files
 
     def merge_js(self):
-        key_counts = {}
-
-        for dictionary in self.project_files:
-            for key in dictionary.keys():
-                if key.endswith('.js'):
-                    if key in key_counts:
-                        key_counts[key] += 1
-                    else:
-                        key_counts[key] = 1
-
-        for key, count in key_counts.items():
-            print(f"{key}: {count}")
-
-        scripts = defaultdict(list)
-        scripts_fun= defaultdict(list)
-
-        for key in key_counts:
-
-            if key_counts[key]>1:
-
-                for dictionary in self.project_files:
-
-                    if key in dictionary:
-                        if not "require('express')" in dictionary[key] and not "require('mongoose')" in dictionary[key]:
-                            code = dictionary[key]
-
-                            ast = get_ast_request(code)
-                            defined_v_f = parse_ast_conditionally(ast)
-                            print(defined_v_f)
-
-                            for key_vf in defined_v_f.keys():
-                                if 'document' in defined_v_f[key_vf]:
-                                    defined_v_f[key_vf].remove('document')
-
-                            for function in defined_v_f["functions"]:
-                                fun = find_function_by_name(code, function)
-                                replacer = get_skeleton_method(fun)
-                                if replacer is not None:
-                                    code = code.replace(fun, replacer)
-                                    if replacer not in scripts_fun[key]:
-                                        scripts_fun[key].append(replacer)
-
-                            for function in defined_v_f["arrow_functions"]:
-                                fun = find_arrow_function_by_name(code, function)
-                                replacer = get_skeleton_method(fun)
-                                if replacer is not None:
-                                    code = code.replace(fun, replacer)
-                                    if replacer not in scripts_fun[key]:
-                                        scripts_fun[key].append(replacer)
-
-                            for function in defined_v_f["callbacks"]:
-                                fun = find_event_listeners_by_variable(code, function)
-
-                                if count_event_listeners(fun) > 1:
-                                    event_listeners = split_event_listeners(fun, function)
-
-                                    for event in event_listeners:
-                                        replacer = get_skeleton_method(event)
-                                        if replacer is not None:
-                                            code = code.replace(event, replacer)
-                                            if replacer not in scripts_fun[key]:
-                                                scripts_fun[key].append(replacer)
-                                else:
-                                    replacer = get_skeleton_method(fun)
-                                    if replacer is not None:
-                                        code = code.replace(fun, replacer)
-                                        if replacer not in scripts_fun[key]:
-                                            scripts_fun[key].append(replacer)
-
-                            scripts[key].append(code)
-
-
-
         with open("prompts/merge_byfile.prompt", "r") as file:
-            merge = file.read().strip()
+            merge_file = file.read().strip()
 
+        with open("prompts/merge_byfun.prompt", "r") as file:
+            merge_fun = file.read().strip()
+
+        client_scripts, client_scripts_fun, client_scripts_request_ai = self.get_client_js_structure()
 
         merged_dict = {}
-        response=[]
-        for key, value_list in scripts.items():
+        response = {}
+        for key, value_list in client_scripts.items():
             self.clear_conversation()
             merged_dict[key] = "\n".join(value_list)
-            self.conversation.append({"role": "system", "content": merge})
+            self.conversation.append({"role": "system", "content": merge_file})
             self.conversation.append({"role": "user", "content": merged_dict[key]})
-            response.append(self.ai_conversation())
+            response[key] = self.ai_conversation()
+
+        updated_fun = defaultdict(list)
+        updated_structure = {}
+
+        for key in response.keys():
+                self.clear_conversation()
+                updated_structure[key] = response[key]
+                for fun in client_scripts_fun[key]:
+                    prompt = (merge_fun
+                              .replace("{{ function }}", fun.split("\n")[0])
+                              .replace("{{ codes }}", "\n".join(client_scripts_request_ai[key])))
+                    self.conversation.append({"role": "user", "content": prompt})
+                    res = escape_snippet("javascript", self.ai_conversation()).replace("javascript", "")
+                    updated_fun[key].append(res)
+                    updated_structure[key] = updated_structure[key].replace(fun, res)
 
 
+        with open('output/merged_files_js_structure_client_updatedstruct.txt', 'w', encoding="utf-8") as file:
+            for key in updated_structure.keys():
+                file.write(f"{key}\n\n")
+                file.write(f"{updated_structure[key]}\n")
+                file.write("\n===========================================\n\n")
 
-
-
-
-
-
-        with open('output/merged_files_js_structure.txt', 'w', encoding="utf-8") as file:
-            for filename, contents in scripts.items():
+        with open('output/merged_files_js_structure_client_updatedfun.txt', 'w', encoding="utf-8") as file:
+            for filename, contents in updated_fun.items():
                 file.write(f"{filename}\n\n")
                 for line in contents:
                     file.write(f"{line}\n")
                 file.write("\n===========================================\n\n")
 
-        with open('output/merged_files_js_structure_functions.txt', 'w', encoding="utf-8") as file:
-            for filename, contents in scripts_fun.items():
+        with open('output/merged_files_js_structure_client.txt', 'w', encoding="utf-8") as file:
+            for filename, contents in client_scripts.items():
                 file.write(f"{filename}\n\n")
                 for line in contents:
                     file.write(f"{line}\n")
                 file.write("\n===========================================\n\n")
 
-        with open('output/merged_files_js_structure_response_ai.txt', 'w', encoding="utf-8") as file:
-            for contents in response:
-                file.write(f"{contents}\n\n")
+        with open('output/merged_files_js_structure_functions_client.txt', 'w', encoding="utf-8") as file:
+            for filename, contents in client_scripts_fun.items():
+                file.write(f"{filename}\n\n")
+                for line in contents:
+                    file.write(f"{line}\n")
                 file.write("\n===========================================\n\n")
 
+        with open('output/merged_files_js_structure_response_ai_client.txt', 'w', encoding="utf-8") as file:
+            for key in response.keys():
+                file.write(f"{response[key]}\n\n")
+                file.write("\n===========================================\n\n")
+
+        # server_scripts, server_scripts_fun, server_scripts_request_ai = self.get_server_js_structure()
+        #
+        # merged_dict = {}
+        # response = []
+        # for key, value_list in server_scripts.items():
+        #     self.clear_conversation()
+        #     merged_dict[key] = "\n".join(value_list)
+        #     self.conversation.append({"role": "system", "content": merge})
+        #     self.conversation.append({"role": "user", "content": merged_dict[key]})
+        #     response.append(self.ai_conversation())
+        #
+        # with open('output/merged_files_js_structure_server.txt', 'w', encoding="utf-8") as file:
+        #     for filename, contents in server_scripts.items():
+        #         file.write(f"{filename}\n\n")
+        #         for line in contents:
+        #             file.write(f"{line}\n")
+        #         file.write("\n===========================================\n\n")
+        #
+        # with open('output/merged_files_js_structure_functions_server.txt', 'w', encoding="utf-8") as file:
+        #     for filename, contents in server_scripts_fun.items():
+        #         file.write(f"{filename}\n\n")
+        #         for line in contents:
+        #             file.write(f"{line}\n")
+        #         file.write("\n===========================================\n\n")
+        #
+        # with open('output/merged_files_js_structure_response_ai_server.txt', 'w', encoding="utf-8") as file:
+        #     for contents in response:
+        #         file.write(f"{contents}\n\n")
+        #         file.write("\n===========================================\n\n")

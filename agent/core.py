@@ -13,7 +13,7 @@ from agent.plan_parser import parse_development_plan, parse_development_plan_v2
 from agent.prebuild_file_parse import escape_snippet
 from agent.tasks_parser import parse_tasks
 
-client = OpenAI(api_key="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")
+client = OpenAI(api_key="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")
 
 session_id = str(uuid.uuid4())
 

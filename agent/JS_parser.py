@@ -412,10 +412,47 @@ def parse_required_modules(ast):
     return required_modules
 
 
+def find_function(code):
+    # Initialize variables to store the function's parts
+    parameters = ""
+    body = ""
+    function_name = ""
 
+    lines = code.split('\n')  # Split the code into lines
 
+    function_found = False
+    brace_counter = 0
 
+    for i, line in enumerate(lines):
+        trimmed_line = line.strip()
+        # Check for function declaration
+        if "function" in trimmed_line and "(" in trimmed_line and "{" in trimmed_line or \
+                "async" in trimmed_line and "(" in trimmed_line and "{" in trimmed_line:
+            function_signature = trimmed_line[:trimmed_line.index('{')].strip()
+            is_async = "async " in function_signature
+            function_split = function_signature.split(" ")
+            function_index = 1 if not is_async else 2
+            function_name = function_split[function_index].split("(")[0]  # Extract function name
 
+            # Check if the function name was successfully extracted
+            if function_name:
+                function_found = True
+                parameters = trimmed_line.split('(')[1].split(')')[0]
+                async_prefix = "async " if is_async else ""
+                body = f"{async_prefix}function {function_name}({parameters}) " + "{\n"
+                brace_counter += 1
+                continue
+        if function_found:
+            if brace_counter > 0:
+                body += line + '\n'
+            brace_counter += line.count('{') - line.count('}')
+            if brace_counter == 0:
+                break
+
+    if not function_found:
+        return "Function not found"
+    else:
+        return body.strip()
 
 
 
