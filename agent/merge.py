@@ -22,6 +22,10 @@ class MergeFile:
     def get_keys(self):
         return {key for d in self.project_files for key in d.keys()}
 
+    def remove_keys(self,all_keys, keys_to_remove):
+        all_keys = [key for key in all_keys if key not in keys_to_remove]
+        return all_keys
+
     def get_key_counts(self):
         key_counts = {}
 
@@ -102,7 +106,7 @@ class MergeFile:
 
                             scripts[key].append(code)
 
-        return scripts, scripts_fun, scripts_request_ai, defined_v_f
+        return scripts, scripts_fun, scripts_request_ai
 
     def get_server_js_structure(self):
         key_counts = self.get_key_counts()
@@ -110,6 +114,7 @@ class MergeFile:
         scripts = defaultdict(list)
         scripts_fun = defaultdict(list)
         scripts_request_ai = defaultdict(list)
+        defined_v_f = None
 
         for key in key_counts:
 
@@ -151,14 +156,21 @@ class MergeFile:
         return ai_response
 
     def merge_files(self):
-        merged_js = self.merge_js()
-
-        print(merged_js)
-
         with open("prompts/merge.prompt", "r") as file:
             merge = file.read().strip()
 
-        all_keys = self.get_keys()
+        client_scripts, client_scripts_fun, client_scripts_request_ai = self.get_client_js_structure()
+        merged_js_client = self.merge_js(client_scripts, client_scripts_fun,client_scripts_request_ai,"client")
+
+        server_scripts, server_scripts_fun, server_scripts_request_ai = self.get_server_js_structure()
+        merged_js_server = self.merge_js(server_scripts, server_scripts_fun, server_scripts_request_ai,"server")
+
+        merged_js = {**merged_js_client, **merged_js_server}
+
+        for key in merged_js.keys():
+            self.merged_files.append({key : merged_js[key]})
+
+        all_keys = self.remove_keys(self.get_keys(), merged_js.keys())
         print(all_keys)
 
         for key in all_keys:
@@ -201,7 +213,7 @@ class MergeFile:
 
 
 
-    def merge_js(self):
+    def merge_js(self, scripts, scripts_fun, scripts_request_ai, prefix="default"):
         merged_js = {}
 
         with open("prompts/merge_byfile.prompt", "r") as file:
@@ -210,11 +222,9 @@ class MergeFile:
         with open("prompts/merge_byfun.prompt", "r") as file:
             merge_fun = file.read().strip()
 
-        client_scripts, client_scripts_fun, client_scripts_request_ai, defined_v_f = self.get_client_js_structure()
-
         merged_dict = {}
         response = {}
-        for key, value_list in client_scripts.items():
+        for key, value_list in scripts.items():
             self.clear_conversation()
             merged_dict[key] = "\n".join(value_list)
             self.conversation.append({"role": "system", "content": merge_file})
@@ -227,9 +237,9 @@ class MergeFile:
         for key in response.keys():
             self.clear_conversation()
             updated_structure[key] = response[key]
-            for fun in client_scripts_fun[key]:
+            for fun in scripts_fun[key]:
 
-                functions = extract_functions_file(client_scripts_request_ai[key], fun)
+                functions = extract_functions_file(scripts_request_ai[key], fun)
                 if not compare_js_functions(functions):
                     prompt = (merge_fun
                               .replace("{{ function }}", fun.split("\n")[0])
@@ -248,99 +258,36 @@ class MergeFile:
 
             merged_js[key] = updated_structure[key]
 
-        with open('output/merged_files_js_structure_client_updatedstruct.txt', 'w', encoding="utf-8") as file:
+        with open(f'output/merged_files_js_structure_{prefix}_updatedstruct.txt', 'w', encoding="utf-8") as file:
             for key in updated_structure.keys():
                 file.write(f"{key}\n\n")
                 file.write(f"{updated_structure[key]}\n")
                 file.write("\n===========================================\n\n")
 
-        with open('output/merged_files_js_structure_client_updatedfun.txt', 'w', encoding="utf-8") as file:
+        with open(f'output/merged_files_js_structure_{prefix}_updatedfun.txt', 'w', encoding="utf-8") as file:
             for filename, contents in updated_fun.items():
                 file.write(f"{filename}\n\n")
                 for line in contents:
                     file.write(f"{line}\n")
                 file.write("\n===========================================\n\n")
 
-        with open('output/merged_files_js_structure_client.txt', 'w', encoding="utf-8") as file:
-            for filename, contents in client_scripts.items():
+        with open(f'output/merged_files_js_structure_{prefix}.txt', 'w', encoding="utf-8") as file:
+            for filename, contents in scripts.items():
                 file.write(f"{filename}\n\n")
                 for line in contents:
                     file.write(f"{line}\n")
                 file.write("\n===========================================\n\n")
 
-        with open('output/merged_files_js_structure_functions_client.txt', 'w', encoding="utf-8") as file:
-            for filename, contents in client_scripts_fun.items():
+        with open(f'output/merged_files_js_structure_functions_{prefix}.txt', 'w', encoding="utf-8") as file:
+            for filename, contents in scripts_fun.items():
                 file.write(f"{filename}\n\n")
                 for line in contents:
                     file.write(f"{line}\n")
                 file.write("\n===========================================\n\n")
 
-        with open('output/merged_files_js_structure_response_ai_client.txt', 'w', encoding="utf-8") as file:
+        with open(f'output/merged_files_js_structure_response_ai_{prefix}.txt', 'w', encoding="utf-8") as file:
             for key in response.keys():
                 file.write(f"{response[key]}\n\n")
                 file.write("\n===========================================\n\n")
 
-        # server_scripts, server_scripts_fun, server_scripts_request_ai = self.get_server_js_structure()
-        #
-        # merged_dict = {}
-        # response = {}
-        # for key, value_list in server_scripts.items():
-        #     self.clear_conversation()
-        #     merged_dict[key] = "\n".join(value_list)
-        #     self.conversation.append({"role": "system", "content": merge_file})
-        #     self.conversation.append({"role": "user", "content": merged_dict[key]})
-        #     response[key] = self.ai_conversation()
-        #
-        # updated_fun = defaultdict(list)
-        # updated_structure = {}
-        #
-        # for key in response.keys():
-        #     self.clear_conversation()
-        #     updated_structure[key] = response[key]
-        #     for fun in server_scripts_fun[key]:
-        #         functions = self.extract_functions_file(server_scripts_request_ai[key], fun)
-        #         prompt = (merge_fun
-        #                   .replace("{{ function }}", fun.split("\n")[0])
-        #                   .replace("{{ codes }}", functions))
-        #         self.conversation.append({"role": "user", "content": prompt})
-        #         answer = self.ai_conversation()
-        #         res = escape_snippet("javascript", answer).replace("javascript", "")
-        #
-        #         updated_fun[key].append(res)
-        #         updated_structure[key] = replace_function_in_code(updated_structure[key], fun, res)
-        #
-        #     merged_js[key] = updated_structure[key]
-        #
-        # with open('output/merged_files_js_structure_server_updatedstruct.txt', 'w', encoding="utf-8") as file:
-        #     for key in updated_structure.keys():
-        #         file.write(f"{key}\n\n")
-        #         file.write(f"{updated_structure[key]}\n")
-        #         file.write("\n===========================================\n\n")
-        #
-        # with open('output/merged_files_js_structure_server_updatedfun.txt', 'w', encoding="utf-8") as file:
-        #     for filename, contents in updated_fun.items():
-        #         file.write(f"{filename}\n\n")
-        #         for line in contents:
-        #             file.write(f"{line}\n")
-        #         file.write("\n===========================================\n\n")
-        #
-        # with open('output/merged_files_js_structure_server.txt', 'w', encoding="utf-8") as file:
-        #     for filename, contents in server_scripts.items():
-        #         file.write(f"{filename}\n\n")
-        #         for line in contents:
-        #             file.write(f"{line}\n")
-        #         file.write("\n===========================================\n\n")
-        #
-        # with open('output/merged_files_js_structure_functions_server.txt', 'w', encoding="utf-8") as file:
-        #     for filename, contents in server_scripts_fun.items():
-        #         file.write(f"{filename}\n\n")
-        #         for line in contents:
-        #             file.write(f"{line}\n")
-        #         file.write("\n===========================================\n\n")
-        #
-        # with open('output/merged_files_js_structure_response_ai_server.txt', 'w', encoding="utf-8") as file:
-        #     for contents in response:
-        #         file.write(f"{contents}\n\n")
-        #         file.write("\n===========================================\n\n")
-        #
-        # return merged_js
+        return merged_js

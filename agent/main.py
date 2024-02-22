@@ -422,8 +422,8 @@ if __name__ == "__main__":
     # print("Summary...\n\n")
     # core.on_summary()
     #
-    # print("Generate Build File (build.sh)...\n\n")
-    # core.generate_bash()
+    print("Generate Build File (build.sh)...\n\n")
+    core.generate_bash()
 
 
 
