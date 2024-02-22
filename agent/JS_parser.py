@@ -3,6 +3,7 @@ import re
 
 import requests
 
+
 def get_ast_request(code):
     url = 'http://localhost:3210/parse'
     data = {'code': code}
@@ -17,6 +18,7 @@ def get_ast_request(code):
             print("Error:", response.text)
     except Exception as e:
         print("Error occurred:", e)
+
 
 def parse_ast_conditionally(ast):
     # Initialize state variables
@@ -89,6 +91,7 @@ def parse_ast_conditionally(ast):
         "arrow_functions": arrow_functions,
     }
 
+
 def parse_required_modules(ast):
     required_modules = {}
     stack = [ast]  # Initialize stack with the root AST node
@@ -115,7 +118,7 @@ def parse_required_modules(ast):
     return required_modules
 
 
-def find_function(code):
+def find_first_function(code):
     # Initialize variables to store the function's parts
     parameters = ""
     body = ""
@@ -157,6 +160,7 @@ def find_function(code):
     else:
         return body.strip()
 
+
 def extract_function(js_code, function_start_line):
     lines = js_code.split('\n')
     start_index = None
@@ -179,6 +183,7 @@ def extract_function(js_code, function_start_line):
 
     return '\n'.join(function_lines)
 
+
 def find_function_by_name(code, function_name):
     # Initialize variables to store the function's parameters and body
     parameters = ""
@@ -197,7 +202,7 @@ def find_function_by_name(code, function_name):
         trimmed_line = line.strip()
         # Improved check for the function declaration to include async functions
         if function_name in trimmed_line and "function" in trimmed_line and "(" in trimmed_line and "{" in trimmed_line or \
-           "async" in trimmed_line and function_name in trimmed_line and "(" in trimmed_line and "{" in trimmed_line:
+                "async" in trimmed_line and function_name in trimmed_line and "(" in trimmed_line and "{" in trimmed_line:
             function_signature = trimmed_line[:trimmed_line.index('{')].strip()
             # Check if the function name exactly matches what we're looking for, including async functions
             is_async = "async " in function_signature
@@ -241,7 +246,8 @@ def find_arrow_function_by_name(code, function_name):
         # Enhanced check to include async functions properly
         if "const " + function_name + " =" in stripped_line and "=>" in stripped_line:
             # Correctly determine if the function is async and adjust for its presence
-            is_async = "= async (" in stripped_line or (stripped_line.startswith("async") and function_name in stripped_line)
+            is_async = "= async (" in stripped_line or (
+                    stripped_line.startswith("async") and function_name in stripped_line)
             async_prefix = "async " if is_async else ""
 
             # Handling for when the function definition starts (considering 'async ' length)
@@ -397,7 +403,6 @@ def replace_function_bodies(code, definitions):
     return code
 
 
-
 def count_event_listeners(js_code):
     # Regular expression to match both '.addEventListener' and '.removeEventListener'
     pattern = r'\.(add|remove)EventListener'
@@ -445,3 +450,65 @@ def split_event_listeners(js_code, object_name):
             event_listeners.append(event_listener_block)
 
     return event_listeners
+
+
+def replace_function_in_code(original_code, function_first_line, new_function_code):
+    function_first_line = function_first_line.split("\n")[0]
+    lines = original_code.split('\n')
+
+    start_index = None
+    open_braces = 0
+    for i, line in enumerate(lines):
+        # Find the start of the function to be replaced
+        if function_first_line in line:
+            start_index = i
+            break
+
+    if start_index is None:
+        return original_code  # Function not found, return original code
+
+    # Find the end of the function by matching braces
+    for i in range(start_index, len(lines)):
+        line = lines[i]
+        open_braces += line.count('{')
+        open_braces -= line.count('}')
+
+        if open_braces == 0:
+            end_index = i
+            break
+    else:
+        # If we never hit 0 braces, something went wrong, return original
+        return original_code
+
+    # Replace the old function with the new function code
+    new_code_lines = lines[:start_index] + new_function_code.split('\n') + lines[end_index + 1:]
+
+    # Return the new code as a single string
+    return '\n'.join(new_code_lines)
+
+
+def compare_js_functions(js_code):
+    functions = js_code.split("<|-|>")
+
+    normalized_functions = [func.strip() for func in functions]
+
+    first_function = normalized_functions[0]
+    for func in normalized_functions[1:]:
+        if func != first_function:
+            return False
+    return True
+
+
+def extract_functions_file(list_files, function):
+    function = function.split("\n")[0]
+    functions_to_update = []
+    for file in list_files:
+        extracted = extract_function(file, function)
+        functions_to_update.append(extracted)
+    try:
+        non_none_items = filter(None, functions_to_update)
+        joined = "\n<|-|>\n".join(non_none_items)
+    except:
+        joined = None
+    print(joined)
+    return joined

@@ -364,7 +364,31 @@ app.listen(PORT, () => {
 }); 
 """
 
+def langchain():
+
+    from langchain_community.llms import OpenAI
+    import os
+    os.environ["OPENAI_API_KEY"] = "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"
+
+    llm = OpenAI(model_name="gpt-3.5-turbo-1106")
+
+    with open("blanks/user_project_details.blank", "r") as file:
+        project_details = file.read().strip()
+    project_descr = project_details
+
+    with open("prompts/technologies.prompt", "r") as file:
+        tech_prompt = file.read().strip()
+
+    final_prompt = (tech_prompt
+                    .replace('{{ name }}', "todo")
+                    .replace('{{ project_details }}', project_descr))
+
+    print(llm(final_prompt))
+
 if __name__ == "__main__":
+
+    # langchain()
+
     print("START...\n\n")
     core.on_start()
 
