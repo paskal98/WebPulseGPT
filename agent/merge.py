@@ -243,7 +243,8 @@ class MergeFile:
                 if not compare_js_functions(functions):
                     prompt = (merge_fun
                               .replace("{{ function }}", fun.split("\n")[0])
-                              .replace("{{ codes }}", functions))
+                              .replace("{{ codes }}", functions)
+                              )
                     self.conversation.append({"role": "user", "content": prompt})
                     answer = self.ai_conversation()
                     res = escape_snippet("javascript", answer).replace("javascript", "")
@@ -255,6 +256,14 @@ class MergeFile:
 
                 updated_fun[key].append(res)
                 updated_structure[key] = replace_function_in_code(updated_structure[key], fun, res)
+
+            # add possibility to add to structure not added function before
+            for fun in scripts_fun[key]:
+                if fun.split("\n")[0] not in updated_structure[key]:
+                    for up_fun in updated_fun[key]:
+                        if fun.split("\n")[0] in up_fun.split("\n")[0] or fun.split("\n")[0] in up_fun.split("\n")[1]:
+                            updated_structure[key] = updated_structure[key][:updated_structure[key].rfind('```')]
+                            updated_structure[key] += "\n" + up_fun + "\n```"
 
             merged_js[key] = updated_structure[key]
 

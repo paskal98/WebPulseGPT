@@ -13,7 +13,7 @@ from agent.plan_parser import parse_development_plan, parse_development_plan_v2
 from agent.prebuild_file_parse import escape_snippet
 from agent.tasks_parser import parse_tasks
 
-client = OpenAI(api_key="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")
+client = OpenAI(api_key="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")
 
 session_id = str(uuid.uuid4())
 
@@ -40,7 +40,7 @@ def add_to_build_script(file_path, content, script_path='output/build.sh'):
     os.makedirs(os.path.dirname(script_path), exist_ok=True)
 
     if not os.path.exists(script_path) or os.path.getsize(script_path) == 0:
-        with open(script_path, 'w') as script_file:
+        with open(script_path, 'w', encoding="utf-8") as script_file:
             script_file.write('#!/bin/bash\nnpm init -y\n')
 
     directory_path = os.path.dirname(file_path)
@@ -51,7 +51,7 @@ def add_to_build_script(file_path, content, script_path='output/build.sh'):
 {content}
 EOF
 """
-    with open(script_path, 'a') as script_file:
+    with open(script_path, 'a', encoding="utf-8") as script_file:
         script_file.write(command)
 
 

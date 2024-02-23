@@ -413,30 +413,22 @@ def count_event_listeners(js_code):
 
 
 def split_event_listeners(js_code, object_name):
-    # Initialize an empty list to store the captured event listener strings
     event_listeners = []
 
-    # Initialize a pointer to keep track of our position in the string
     index = 0
 
-    # Loop through the code to find each event listener related to the specified object
     while index < len(js_code):
-        # Find the next occurrence of the object name followed by '.addEventListener' or '.removeEventListener'
         event_listener_start = js_code.find(f'{object_name}.add', index)
         if event_listener_start == -1:
             event_listener_start = js_code.find(f'{object_name}.remove', index)
             if event_listener_start == -1:
-                # If no more event listeners are found, break out of the loop
                 break
 
-        # Find the opening parenthesis of the event listener declaration
         start_parenthesis = js_code.find('(', event_listener_start)
 
-        # Initialize counters for parentheses to identify the end of the event listener block
         open_parens = 1
         index = start_parenthesis + 1
 
-        # Loop through the code starting after the opening parenthesis to find the matching closing parenthesis
         while index < len(js_code) and open_parens > 0:
             if js_code[index] == '(':
                 open_parens += 1
@@ -444,7 +436,6 @@ def split_event_listeners(js_code, object_name):
                 open_parens -= 1
             index += 1
 
-        # Once the matching closing parenthesis is found, extract the event listener block
         if open_parens == 0:
             event_listener_block = js_code[event_listener_start:index]
             event_listeners.append(event_listener_block)
@@ -502,9 +493,11 @@ def compare_js_functions(js_code):
 def extract_functions_file(list_files, function):
     function = function.split("\n")[0]
     functions_to_update = []
+    count_file = 0
     for file in list_files:
         extracted = extract_function(file, function)
         functions_to_update.append(extracted)
+        count_file += 1
     try:
         non_none_items = filter(None, functions_to_update)
         joined = "\n<|-|>\n".join(non_none_items)
