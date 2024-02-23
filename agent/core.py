@@ -13,7 +13,7 @@ from agent.plan_parser import parse_development_plan, parse_development_plan_v2
 from agent.prebuild_file_parse import escape_snippet
 from agent.tasks_parser import parse_tasks
 
-client = OpenAI(api_key="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")
+client = OpenAI(api_key="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")
 
 session_id = str(uuid.uuid4())
 
@@ -260,7 +260,15 @@ class Core:
                 extracted_content = "\n".join(self.implemented_project)
                 self.clear_history_role()
                 self.conversation_history_roles.append({"role": "system",
-                                                        "content": final_content + "\n Code that have already implemented. Based on this code add or update implementation\n" +
+                                                        "content": final_content + "\n Code that have already implemented. Based on this code add or update implementation\n Note that tech stack are "
+                                                                                   "\n- Node.js"
+                                                                                   "\n - MongoDB" +
+                                                                                   "\n - PeeWee" +
+                                                                                   "\n - Bootstrap" +
+                                                                                   "\n - HTML" +
+                                                                                   "\n - CSS3" +
+                                                                                   "\n - cronjob" +
+                                                                                   "\n - Socket.io" +
                                                                    extracted_content})
 
         consolidated_project_files = consolidate_duplicates(self.project_files)
