@@ -3,6 +3,7 @@ import os
 import re
 import uuid
 
+from langchain_openai import ChatOpenAI
 from openai import OpenAI
 
 from agent.blank_parser import parse
@@ -13,7 +14,8 @@ from agent.plan_parser import parse_development_plan, parse_development_plan_v2
 from agent.prebuild_file_parse import escape_snippet
 from agent.tasks_parser import parse_tasks
 
-client = OpenAI(api_key="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")
+
+
 
 session_id = str(uuid.uuid4())
 
@@ -71,7 +73,8 @@ def parse_packages_from_code(code):
 
 
 class Core:
-    def __init__(self):
+    def __init__(self, api_key):
+        self.client = OpenAI(api_key=api_key)
         self.merged_files = []
         self.project_files = []
         self.files = None
@@ -87,6 +90,9 @@ class Core:
         self.conversation_history_roles = []
         self.full_stack_acting = None
         self.plan = None
+
+    def get_total_project(self):
+        return self.prepare_merged_files_to_str, self.prepare_plan_to_str, self.project_descr
 
     def print_history(self):
         for text in self.conversation_history:
@@ -108,6 +114,14 @@ class Core:
             tasks_formatted += f"Programmatic Goal: {details['Programmatic Goal']}\n"
             tasks_formatted += f"User-Review Goal: {details['User-Review Goal']}\n\n"
         return tasks_formatted
+
+    def prepare_merged_files_to_str(self):
+        result = ""
+        for dictionary in self.merged_files:
+            for key, value in dictionary.items():
+                result += f"{key}: {value}\n\n"
+            result += "\n\n\n"
+        return result
 
     def prepare_plan_to_str(self):
         tasks_formatted = ""
@@ -133,7 +147,7 @@ class Core:
             conversation = self.conversation_history_roles
             conversation.append({"role": "user", "content": request})
 
-        completion = client.chat.completions.create(
+        completion = self.client.chat.completions.create(
             model="gpt-3.5-turbo-1106",
             messages=conversation,
             user=session_id,
@@ -320,7 +334,7 @@ class Core:
 
 
     def on_merge_files(self):
-        merge = MergeFile(self.project_files,client)
+        merge = MergeFile(self.project_files,self.client)
         self.merged_files = merge.merge_files()
 
     def on_modularity_html_js(self):
@@ -341,11 +355,34 @@ class Core:
 
 
         self.conversation_history_roles.append({"role": "system", "content": modularity_html_js})
+
         response = self.ai_conversation(None, 'role').content
 
         with open('output/file_modularity_html_js.txt', 'w', encoding="utf-8") as file:
             file.write(modularity_html_js)
         with open('output/file_modularity_html_js_RESPOSNE.txt', 'w', encoding="utf-8") as file:
+            file.write(response)
+
+    def on_modularity_js_js(self):
+        self.clear_history_role()
+        with open("prompts/file_modularity_js_js.prompt", "r") as file:
+            modularity_js_js = file.read().strip()
+
+        all_keys = {key for d in self.merged_files for key in d.keys()}
+
+        self.conversation_history_roles.append({"role": "system", "content": modularity_js_js})
+        for key in all_keys:
+            for dictionary in self.merged_files:
+                if key in dictionary and ".js" in key:
+                    self.conversation_history_roles.append({"role": "system", "content": dictionary[key]})
+
+        self.conversation_history_roles.append({"role": "system", "content": modularity_js_js})
+
+        response = self.ai_conversation(None, 'role').content
+
+        with open('output/file_modularity_js_js.txt', 'w', encoding="utf-8") as file:
+            file.write(modularity_js_js)
+        with open('output/file_modularity_js_js_RESPOSNE.txt', 'w', encoding="utf-8") as file:
             file.write(response)
 
     def on_check_modularity(self):

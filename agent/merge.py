@@ -9,6 +9,11 @@ from agent.JS_parser import get_ast_request, find_function_by_name, get_skeleton
 from agent.prebuild_file_parse import escape_snippet
 
 
+def remove_keys(all_keys, keys_to_remove):
+    all_keys = [key for key in all_keys if key not in keys_to_remove]
+    return all_keys
+
+
 class MergeFile:
     def __init__(self, project_files, client):
         self.merged_files = []
@@ -21,10 +26,6 @@ class MergeFile:
 
     def get_keys(self):
         return {key for d in self.project_files for key in d.keys()}
-
-    def remove_keys(self,all_keys, keys_to_remove):
-        all_keys = [key for key in all_keys if key not in keys_to_remove]
-        return all_keys
 
     def get_key_counts(self):
         key_counts = {}
@@ -42,8 +43,7 @@ class MergeFile:
 
         return key_counts
 
-    def get_client_js_structure(self):
-        key_counts = self.get_key_counts()
+    def get_client_js_structure(self, key_counts, project_files):
 
         scripts = defaultdict(list)
         scripts_fun = defaultdict(list)
@@ -54,7 +54,7 @@ class MergeFile:
 
             if key_counts[key] > 1:
 
-                for dictionary in self.project_files:
+                for dictionary in project_files:
 
                     if key in dictionary:
                         if not "require('express')" in dictionary[key] and not "require('mongoose')" in dictionary[key]:
@@ -108,8 +108,7 @@ class MergeFile:
 
         return scripts, scripts_fun, scripts_request_ai
 
-    def get_server_js_structure(self):
-        key_counts = self.get_key_counts()
+    def get_server_js_structure(self,key_counts, project_files):
 
         scripts = defaultdict(list)
         scripts_fun = defaultdict(list)
@@ -120,7 +119,7 @@ class MergeFile:
 
             if key_counts[key] > 1:
 
-                for dictionary in self.project_files:
+                for dictionary in project_files:
 
                     if key in dictionary:
                         if "require('express')" in dictionary[key]:
@@ -159,10 +158,10 @@ class MergeFile:
         with open("prompts/merge.prompt", "r") as file:
             merge = file.read().strip()
 
-        client_scripts, client_scripts_fun, client_scripts_request_ai = self.get_client_js_structure()
+        client_scripts, client_scripts_fun, client_scripts_request_ai = self.get_client_js_structure(self.get_key_counts(), self.project_files)
         merged_js_client = self.merge_js(client_scripts, client_scripts_fun,client_scripts_request_ai,"client")
 
-        server_scripts, server_scripts_fun, server_scripts_request_ai = self.get_server_js_structure()
+        server_scripts, server_scripts_fun, server_scripts_request_ai = self.get_server_js_structure(self.get_key_counts(), self.project_files)
         merged_js_server = self.merge_js(server_scripts, server_scripts_fun, server_scripts_request_ai,"server")
 
         merged_js = {**merged_js_client, **merged_js_server}
@@ -170,8 +169,7 @@ class MergeFile:
         for key in merged_js.keys():
             self.merged_files.append({key : merged_js[key]})
 
-        all_keys = self.remove_keys(self.get_keys(), merged_js.keys())
-        print(all_keys)
+        all_keys = remove_keys(self.get_keys(), merged_js.keys())
 
         for key in all_keys:
             self.clear_conversation()
@@ -300,3 +298,4 @@ class MergeFile:
                 file.write("\n===========================================\n\n")
 
         return merged_js
+
