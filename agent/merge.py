@@ -15,11 +15,12 @@ def remove_keys(all_keys, keys_to_remove):
 
 
 class MergeFile:
-    def __init__(self, project_files, client):
+    def __init__(self, project_files, client, project_id):
         self.merged_files = []
         self.conversation = []
         self.project_files = project_files
         self.client = client
+        self.project_id = project_id
 
     def clear_conversation(self):
         self.conversation = []
@@ -196,10 +197,13 @@ class MergeFile:
                 else:
                     self.merged_files.append({key: result})
 
-        with open('output/merged_files.txt', 'w', encoding="utf-8") as file:
+        with open(f'output/projects/{self.project_id}/merged_files.txt', 'w', encoding="utf-8") as file:
             for dictionary in self.merged_files:
                 for key, value in dictionary.items():
-                    file.write(f"{key}: {value}\n\n")
+                    if "```" in value:
+                        value.replace("```","")
+                    file.write(f"{key}: ```{key}: {value}```\n\n")
+
                 file.write("\n===========================================\n")
             file.write("\n\n\n\n")
 
@@ -259,40 +263,43 @@ class MergeFile:
             for fun in scripts_fun[key]:
                 if fun.split("\n")[0] not in updated_structure[key]:
                     for up_fun in updated_fun[key]:
-                        if fun.split("\n")[0] in up_fun.split("\n")[0] or fun.split("\n")[0] in up_fun.split("\n")[1]:
-                            updated_structure[key] = updated_structure[key][:updated_structure[key].rfind('```')]
-                            updated_structure[key] += "\n" + up_fun + "\n```"
+                        try:
+                            if fun.split("\n")[0] in up_fun.split("\n")[0] or fun.split("\n")[0] in up_fun.split("\n")[1]:
+                                updated_structure[key] = updated_structure[key][:updated_structure[key].rfind('```')]
+                                updated_structure[key] += "\n" + up_fun + "\n```"
+                        except:
+                            continue
 
             merged_js[key] = updated_structure[key]
 
-        with open(f'output/merged_files_js_structure_{prefix}_updatedstruct.txt', 'w', encoding="utf-8") as file:
+        with open(f'output/projects/{self.project_id}/merged_files_js_structure_{prefix}_updatedstruct.txt', 'w', encoding="utf-8") as file:
             for key in updated_structure.keys():
                 file.write(f"{key}\n\n")
                 file.write(f"{updated_structure[key]}\n")
                 file.write("\n===========================================\n\n")
 
-        with open(f'output/merged_files_js_structure_{prefix}_updatedfun.txt', 'w', encoding="utf-8") as file:
+        with open(f'output/projects/{self.project_id}/merged_files_js_structure_{prefix}_updatedfun.txt', 'w', encoding="utf-8") as file:
             for filename, contents in updated_fun.items():
                 file.write(f"{filename}\n\n")
                 for line in contents:
                     file.write(f"{line}\n")
                 file.write("\n===========================================\n\n")
 
-        with open(f'output/merged_files_js_structure_{prefix}.txt', 'w', encoding="utf-8") as file:
+        with open(f'output/projects/{self.project_id}/merged_files_js_structure_{prefix}.txt', 'w', encoding="utf-8") as file:
             for filename, contents in scripts.items():
                 file.write(f"{filename}\n\n")
                 for line in contents:
                     file.write(f"{line}\n")
                 file.write("\n===========================================\n\n")
 
-        with open(f'output/merged_files_js_structure_functions_{prefix}.txt', 'w', encoding="utf-8") as file:
+        with open(f'output/projects/{self.project_id}/merged_files_js_structure_functions_{prefix}.txt', 'w', encoding="utf-8") as file:
             for filename, contents in scripts_fun.items():
                 file.write(f"{filename}\n\n")
                 for line in contents:
                     file.write(f"{line}\n")
                 file.write("\n===========================================\n\n")
 
-        with open(f'output/merged_files_js_structure_response_ai_{prefix}.txt', 'w', encoding="utf-8") as file:
+        with open(f'output/projects/{self.project_id}/merged_files_js_structure_response_ai_{prefix}.txt', 'w', encoding="utf-8") as file:
             for key in response.keys():
                 file.write(f"{response[key]}\n\n")
                 file.write("\n===========================================\n\n")

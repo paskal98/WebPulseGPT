@@ -38,7 +38,8 @@ def contains_only_letters(text):
     return True
 
 
-def add_to_build_script(file_path, content, script_path='output/build.sh'):
+def add_to_build_script(file_path, content, project_id):
+    script_path = f'output/projects/{project_id}/build.sh'
     os.makedirs(os.path.dirname(script_path), exist_ok=True)
 
     if not os.path.exists(script_path) or os.path.getsize(script_path) == 0:
@@ -57,7 +58,8 @@ EOF
         script_file.write(command)
 
 
-def add_package_install_commands(packages, script_path='output/build.sh'):
+def add_package_install_commands(packages, project_id):
+    script_path = f'output/projects/{project_id}/build.sh'
     os.makedirs(os.path.dirname(script_path), exist_ok=True)
 
     with open(script_path, 'a') as script_file:
@@ -73,7 +75,7 @@ def parse_packages_from_code(code):
 
 
 class Core:
-    def __init__(self, api_key):
+    def __init__(self, api_key, project_id):
         self.client = OpenAI(api_key=api_key)
         self.merged_files = []
         self.project_files = []
@@ -90,9 +92,29 @@ class Core:
         self.conversation_history_roles = []
         self.full_stack_acting = None
         self.plan = None
+        self.project_id = project_id
 
+        dir_path = f"output/projects/{self.project_id}"
+        os.makedirs(dir_path, exist_ok=True)
     def get_total_project(self):
         return self.prepare_merged_files_to_str, self.prepare_plan_to_str, self.project_descr
+
+    def save_project_impl(self):
+        with open(f'output/projects/{self.project_id}/project_summary.txt', 'w', encoding="utf-8") as file:
+            tasks_formatted = ""
+            for category, tasks in self.development_plan.items():
+                tasks_formatted += f"{category}:\n"
+                for task_number, task_description in tasks.items():
+                    tasks_formatted += f"- Task {task_number}: {task_description}\n"
+                tasks_formatted += "\n"
+
+            relevant_files = ""
+            for dictionary in self.merged_files:
+                for key, value in dictionary.items():
+                    relevant_files += f"{key}: ```\n{escape_snippet(key, value)}\n```\n"
+                relevant_files += "\n\n"
+
+            file.write(f"{self.project_descr}\n{tasks_formatted}\n{relevant_files}")
 
     def print_history(self):
         for text in self.conversation_history:
@@ -287,14 +309,14 @@ class Core:
 
         consolidated_project_files = consolidate_duplicates(self.project_files)
 
-        with open('output/project_files.txt', 'w', encoding="utf-8") as file:
+        with open(f'output/projects/{self.project_id}/project_files.txt', 'w', encoding="utf-8") as file:
 
             for dictionary in self.project_files:
                 for key, value in dictionary.items():
                     file.write(f"{key}: {value}\n\n")
                 file.write("\n----------\n")
 
-        with open('output/consolidated_project_files.txt', 'w', encoding="utf-8") as file:
+        with open(f'output/projects/{self.project_id}/consolidated_project_files.txt', 'w', encoding="utf-8") as file:
             for dictionary in consolidated_project_files:
                 for key, value in dictionary.items():
                     file.write(f"{key}: {value}\n\n")
@@ -323,18 +345,18 @@ class Core:
         self.conversation_history_roles.append({"role": "user", "content": final_content})
         project_reviewed = self.ai_conversation(None, 'role').content
 
-        with open('output/project_implemented_raw.txt', 'w', encoding="utf-8") as file:
+        with open(f'output/projects/{self.project_id}/project_implemented_raw.txt', 'w', encoding="utf-8") as file:
             file.write("\n<$$$>\n".join(self.implemented_project))
 
-        with open('output/project_reviewed.txt', 'w', encoding="utf-8") as file:
+        with open(f'output/projects/{self.project_id}/project_reviewed.txt', 'w', encoding="utf-8") as file:
             file.write(project_reviewed)
 
-        with open('output/final_content.txt', 'w', encoding="utf-8") as file:
+        with open(f'output/projects/{self.project_id}/final_content.txt', 'w', encoding="utf-8") as file:
             file.write(final_content)
 
 
     def on_merge_files(self):
-        merge = MergeFile(self.project_files,self.client)
+        merge = MergeFile(self.project_files,self.client,self.project_id )
         self.merged_files = merge.merge_files()
 
     def on_modularity_html_js(self):
@@ -358,9 +380,9 @@ class Core:
 
         response = self.ai_conversation(None, 'role').content
 
-        with open('output/file_modularity_html_js.txt', 'w', encoding="utf-8") as file:
+        with open(f'output/projects/{self.project_id}/file_modularity_html_js.txt', 'w', encoding="utf-8") as file:
             file.write(modularity_html_js)
-        with open('output/file_modularity_html_js_RESPOSNE.txt', 'w', encoding="utf-8") as file:
+        with open(f'output/projects/{self.project_id}/file_modularity_html_js_RESPOSNE.txt', 'w', encoding="utf-8") as file:
             file.write(response)
 
     def on_modularity_js_js(self):
@@ -380,9 +402,9 @@ class Core:
 
         response = self.ai_conversation(None, 'role').content
 
-        with open('output/file_modularity_js_js.txt', 'w', encoding="utf-8") as file:
+        with open(f'output/projects/{self.project_id}/file_modularity_js_js.txt', 'w', encoding="utf-8") as file:
             file.write(modularity_js_js)
-        with open('output/file_modularity_js_js_RESPOSNE.txt', 'w', encoding="utf-8") as file:
+        with open(f'output/projects/{self.project_id}/file_modularity_js_js_RESPOSNE.txt', 'w', encoding="utf-8") as file:
             file.write(response)
 
     def on_check_modularity(self):
@@ -422,10 +444,10 @@ class Core:
         packages = []
         for dictionary in self.merged_files:
             for key, value in dictionary.items():
-                add_to_build_script(key, escape_snippet(key, value))
+                add_to_build_script(key, escape_snippet(key, value),self.project_id)
                 if "require(" in value:
                     packages.append(parse_packages_from_code(value))
 
         if len(packages) > 0:
             unique = list(map(list, set(map(tuple, packages))))
-            add_package_install_commands(unique)
+            add_package_install_commands(unique,self.project_id)
