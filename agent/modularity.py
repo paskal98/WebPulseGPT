@@ -28,16 +28,13 @@ def parse_issues(text):
     for line in lines:
         line = line.strip()
         if line.endswith('Issue'):
-            # Extract the issue number and start a new issue entry
             issue_number = line.split('.')[0]
             current_issue = issue_number
             issues_dict[current_issue] = []
         elif line.startswith('-'):
-            # This is a primary list item for the current issue
             if current_issue is not None:
                 issues_dict[current_issue].append(line[1:].strip())
         elif line.startswith('File:') or line.startswith('Function:'):
-            # This is a sub-item related to the last primary list item, append it to the last item if exists
             if current_issue is not None and issues_dict[current_issue]:
                 issues_dict[current_issue][-1] += ' ' + line
 
@@ -45,16 +42,6 @@ def parse_issues(text):
 
 
 def parse_content_by_key(text, key):
-    """
-    Extracts content from text wrapped in triple backticks following a specific key.
-
-    :param text: The text to search through.
-    :param key: The key indicating the start of the content to extract.
-    :return: The extracted content or None if not found.
-    """
-    # Pattern to find the content wrapped in triple backticks following the key
-    # The key is escaped to handle special regex characters, and re.escape is used for that purpose.
-    # The pattern uses non-greedy matching (.*?) to capture the content until the first closing backticks.
     pattern = re.compile(re.escape(key) + r'\s*```(.*?)```', re.DOTALL)
 
     match = pattern.search(text)
@@ -75,6 +62,54 @@ def replace_content_by_key(text, key, new_content):
     old_content = parse_content_by_key(text,key)
     new_content = new_content.replace(f"```{type}","").replace("```","")
     return text.replace(old_content, new_content)
+
+
+def extract_file_paths(text):
+    regex = r'\b[\w./-]+/\w+\.\w+\b|\b[\w-]+\.\w+\b'
+
+    matches = re.findall(regex, text)
+
+    unique_matches_ordered = []
+    for match in matches:
+        if match not in unique_matches_ordered:
+            unique_matches_ordered.append(match)
+
+    return unique_matches_ordered
+
+
+def get_uncreated_files(created_files, text):
+    def flatten_and_unique(list_of_lists):
+        unique_elements = []
+        for sublist in list_of_lists:
+            for item in sublist:
+                if item not in unique_elements:
+                    unique_elements.append(item)
+        return unique_elements
+
+    def replace_similar_and_create_new_list(list1, list2):
+        filtered_list2 = [item for item in list2 if item not in list1]
+
+        return filtered_list2
+
+    files_paths = [extract_file_paths(text)]
+    unique_files = flatten_and_unique(files_paths)
+    res = replace_similar_and_create_new_list(created_files, unique_files)
+    return res
+
+
+def update_summary_with_issues(project_total, files):
+    uncreated_files = files
+    project_total += "\n\n\n"
+    for u_f in uncreated_files:
+        comment = ""
+        if ".js" in u_f:
+            comment = "//" + u_f
+        elif ".html" in u_f:
+            comment = "<!-- " + u_f + " -->"
+        elif ".css" in u_f:
+            comment = "/* " + u_f + " */"
+        project_total += u_f + ": ```\n" + comment + "\n\n```\n\n"
+    return project_total
 
 class Modularity:
     def __init__(self, id):
@@ -106,10 +141,17 @@ class Modularity:
         retriever = db.as_retriever()
         self.chain = RetrievalQA.from_chain_type(llm=self.chat, retriever=retriever, chain_type="stuff")
 
-
     def init_module(self):
         self.prepare_vector_db()
         self.prepare_chain()
+
+    def get_new_files(self):
+        text_issues = ""
+        for key in self.issues.keys():
+            text_issues += "\n" + '\n'.join(self.issues[key])
+        uncreated_files = get_uncreated_files(self.project_structure_files, text_issues)
+        self.project_structure_files = list(set(uncreated_files + self.project_structure_files))
+        return uncreated_files
 
     def project_structure(self):
         request = self.chain.run("""
@@ -149,10 +191,13 @@ class Modularity:
         with open(self.project_path, "r", encoding="utf-8") as file:
             project_total = file.read().strip()
 
+        project_total = update_summary_with_issues(project_total, self.get_new_files())
+        print(self.project_structure_files)
+
         for key in self.issues.keys():
             file_key=[]
             files = []
-            request = "Based on Issue, provide me whole updated function if it js or whole html or css file"
+            request = "Based on Issue, provide me whole updated function if it js or whole html or css file\n\n"
             for file in self.project_structure_files:
                 if file in '\n'.join(self.issues[key]):
                     files.append(parse_content_by_key(project_total, file + ":"))
@@ -175,7 +220,7 @@ class Modularity:
                                 "here comment of how file path and type of file like nameOfFile.type"
                                 "here code..."
                                 "filepath.type can be any name and type, its example"
-                                "You always send one updated whole file back. This file is "+f_k
+                                "You always send one updated function back if it javascript or whole file of index or css. This file is "+f_k
                     ),
                     HumanMessage(
                         content=request

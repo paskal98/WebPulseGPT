@@ -11,7 +11,7 @@ from agent.JS_parser import parse_ast_conditionally, find_function_by_name, \
     split_event_listeners, extract_function
 from agent.core import Core
 from agent.implemented_parser import parse_file_contents
-from agent.modularity import Modularity
+from agent.modularity import Modularity, extract_file_paths, get_uncreated_files
 
 API = os.environ['OPENAI_API_KEY']
 project_id = str(uuid.uuid4().hex)
@@ -57,6 +57,8 @@ if __name__ == "__main__":
 
 
     modularity.project_issue_solution()
+
+
 
     # print("Modularity Files HTML JS...\n\n")
     # core.on_modularity_html_js()
