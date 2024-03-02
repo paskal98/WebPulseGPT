@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 from langchain_community.document_loaders import TextLoader
 from langchain_core.messages import SystemMessage, HumanMessage
 
+from agent.merge import MergeFile
 from agent.prebuild_file_parse import escape_snippet
 
 load_dotenv()
@@ -111,13 +112,35 @@ def update_summary_with_issues(project_total, files):
         project_total += u_f + ": ```\n" + comment + "\n\n```\n\n"
     return project_total
 
+
+def remove_first_line_if_contains(text, search_text):
+    lines = text.split('\n')
+
+    if lines and search_text in lines[0]:
+        return '\n'.join(lines[1:])
+    else:
+        return text
+
+
+def extract_code_block(text):
+    start_delimiter = "```"
+    end_delimiter = "```"
+    start_index = text.find(start_delimiter) + len(start_delimiter)
+    end_index = text.rfind(end_delimiter)
+    if start_index > -1 and end_index > -1:
+        return text[start_index:end_index].strip()
+    else:
+        return "No code block found."
+
 class Modularity:
-    def __init__(self, id):
+    def __init__(self, project_id, client):
         self.chat = ChatOpenAI(model_name="gpt-3.5-turbo-1106")
         self.embeddings = OpenAIEmbeddings()
         self.chain = None
-        self.project_path = f"output/projects/{id}/project_summary.txt"
-        self.emb_id = "output/projects_embeddings/" + id
+        self.project_path = f"output/projects/{project_id}/project_summary.txt"
+        self.emb_id = "output/projects_embeddings/" + project_id
+        self.project_id = project_id
+        self.client = client
 
         if os.path.exists(self.emb_id):
             shutil.rmtree(self.emb_id)
@@ -198,16 +221,19 @@ class Modularity:
             file_key=[]
             files = []
             request = "Based on Issue, provide me whole updated function if it js or whole html or css file\n\n"
+            is_issue_added = False
             for file in self.project_structure_files:
                 if file in '\n'.join(self.issues[key]):
-                    files.append(parse_content_by_key(project_total, file + ":"))
+                    files.append("```\n"+parse_content_by_key(project_total, file + ":")+"\n```\n\n")
 
-                    request += f"Issue {key}:\n"
-                    for detail in self.issues[key]:
-                        request += f"- {detail}\n"
-
-                    request += '\n'.join(files) + "\n\n\n"
+                    if not is_issue_added:
+                        request += f"Issue {key}:\n"
+                        for detail in self.issues[key]:
+                            request += f"- {detail}\n\n\n"
+                        is_issue_added = True
                     file_key.append(file)
+
+            request += '\n'.join(files) + "\n\n\n"
 
             for f_k in file_key:
                 request+="\nReturn now only whole code of "+f_k +" file, other updates in other files dont provide. I need updated "+f_k+" file back"
@@ -228,7 +254,31 @@ class Modularity:
                 ]
                 res = self.chat(messages)
 
-                project_total = replace_content_by_key(project_total, f_k + ":", res.content)
+
+                code_response = res.content
+                code_old = parse_content_by_key(project_total, f_k + ":")
+
+                request = request.replace(code_old, code_response
+                                          .replace("```javascript", "")
+                                          .replace("```html", "")
+                                          .replace("```css", "")
+                                          .replace("```", ""))
+
+
+
+                #preparse ast tree for better merging
+                if ".js" in f_k and len(code_old) != len("//"+f_k):
+                    code_new = code_response.replace("```javascript","").replace("```","")
+                    merge = MergeFile([{f_k:code_old},{f_k:remove_first_line_if_contains(code_new,"javascript")}], self.client, self.project_id)
+                    response = merge.merge_files()[0][f_k]
+                    code_response = extract_code_block(response)
+                    code_response = remove_first_line_if_contains(code_response,"javascript")
+
+
+
+                project_total = replace_content_by_key(project_total, f_k + ":", code_response)
+
+                request = request.replace("\nReturn now only whole code of "+f_k +" file, other updates in other files dont provide. I need updated "+f_k+" file back",'')
 
 
                 print("\n\n\n======================================================\n\n\n")

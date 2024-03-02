@@ -49,7 +49,7 @@ if __name__ == "__main__":
     #
     # core.save_project_impl()
 
-    modularity = Modularity("4d2da4e256f14efabe16689fb6144e22")
+    modularity = Modularity("4d2da4e256f14efabe16689fb6144e22", OpenAI(api_key=API))
     modularity.init_module()
     modularity.project_structure()
     modularity.project_summary()
