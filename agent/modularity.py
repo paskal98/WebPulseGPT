@@ -176,6 +176,9 @@ class Modularity:
         self.project_structure_files = list(set(uncreated_files + self.project_structure_files))
         return uncreated_files
 
+    def set_project_path(self, new_path):
+        self.project_path = new_path
+
     def project_structure(self):
         request = self.chain.run("""
         
@@ -193,6 +196,26 @@ class Modularity:
     def project_summary(self):
         res = self.chain.run("""
         Based on project plan, project details and implemented code. Check if all implementation didnt skip requirements or something forgotten to added
+        If any has forgotten, write file name, where was updates needed. Output format provided this
+        Format:
+        1. Issue
+        - description about what should be done
+        - files that should be used to solve issue
+        - files that should be created
+        2. ...
+        """)
+
+        self.issues = parse_issues(res)
+        for issue, details in self.issues.items():
+            print(f"Issue {issue}:")
+            for detail in details:
+                print(f"- {detail}")
+            print()
+
+
+    def project_user_updates(self, request):
+        res = self.chain.run(f"""
+        Based on project plan, project details, implemented code and user. Write issue or issues based on user request ` {request} `
         If any has forgotten, write file name, where was updates needed. Output format provided this
         Format:
         1. Issue

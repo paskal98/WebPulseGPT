@@ -49,14 +49,26 @@ if __name__ == "__main__":
     #
     # core.save_project_impl()
 
-    modularity = Modularity("4d2da4e256f14efabe16689fb6144e22", OpenAI(api_key=API))
-    modularity.init_module()
-    modularity.project_structure()
-    modularity.project_summary()
+    modularity = Modularity("15c65ae4eb3d4978b1df18fa03d7a59a", OpenAI(api_key=API))
+    # modularity.init_module()
+    # modularity.project_structure()
+    # modularity.project_summary()
 
+    # modularity.project_issue_solution()
 
+    while True:
+        try:
+            print("\n Write update that should be applied:\n")
+            update = input()
+            modularity.set_project_path("nen.txt")
 
-    modularity.project_issue_solution()
+            modularity.init_module()
+            modularity.project_structure()
+            modularity.project_user_updates(update)
+            modularity.project_issue_solution()
+        except:
+            print("Failed")
+
 
 
 
