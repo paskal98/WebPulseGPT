@@ -271,9 +271,9 @@ class Modularity:
                     code_old = remove_first_line_if_contains(code_old, "javascript")
                     merge = MergeFile([{f_k:code_old},{f_k:code_response}], self.client, self.project_id)
                     response = merge.merge_files()[0][f_k]
-                    code_response = extract_code_block(response)
+                    code_response = extract_code_block(response.replace(f_k+":","\n"))
                     code_response = remove_first_line_if_contains(code_response,"javascript")
-                    code_response=code_response.replace(f_k+":","")
+                    code_response=code_response.replace(f_k+":","\n")
 
 
 
