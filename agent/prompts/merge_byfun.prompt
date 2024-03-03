@@ -41,3 +41,5 @@ GPT-3 is expected to synthesize the provided versions, merging the filtering for
 const processData = (data) => {
     return data.filter(item => item.isActive).map(item => item.value).filter(value => value !== undefined);
 }
+
+You provide only code back, any text should be commented ib javascript format

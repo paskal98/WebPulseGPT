@@ -255,34 +255,35 @@ class Modularity:
                 res = self.chat(messages)
 
 
-                code_response = res.content
+                code_response = (extract_code_block(res.content))
+                code_response = remove_first_line_if_contains(code_response, "javascript")
+                code_response = remove_first_line_if_contains(code_response, "html")
+                code_response = remove_first_line_if_contains(code_response, "css")
+
                 code_old = parse_content_by_key(project_total, f_k + ":")
 
-                request = request.replace(code_old, code_response
-                                          .replace("```javascript", "")
-                                          .replace("```html", "")
-                                          .replace("```css", "")
-                                          .replace("```", ""))
-
+                print("\n\n\n======================================================\n\n\n")
+                print(code_response)
 
 
                 #preparse ast tree for better merging
                 if ".js" in f_k and len(code_old) != len("//"+f_k):
-                    code_new = code_response.replace("```javascript","").replace("```","")
-                    merge = MergeFile([{f_k:code_old},{f_k:remove_first_line_if_contains(code_new,"javascript")}], self.client, self.project_id)
+                    code_old = remove_first_line_if_contains(code_old, "javascript")
+                    merge = MergeFile([{f_k:code_old},{f_k:code_response}], self.client, self.project_id)
                     response = merge.merge_files()[0][f_k]
                     code_response = extract_code_block(response)
                     code_response = remove_first_line_if_contains(code_response,"javascript")
+                    code_response=code_response.replace(f_k+":","")
 
 
 
                 project_total = replace_content_by_key(project_total, f_k + ":", code_response)
 
+                request = request.replace(code_old, code_response)
                 request = request.replace("\nReturn now only whole code of "+f_k +" file, other updates in other files dont provide. I need updated "+f_k+" file back",'')
 
 
-                print("\n\n\n======================================================\n\n\n")
-                print(res.content)
+
 
         with open("nen.txt", "w", encoding="utf-8") as file:
              file.write(project_total)

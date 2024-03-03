@@ -22,6 +22,7 @@ Organize for Clarity and Maintainability: Ensure the final merged file is logica
 
 Expected Outcome: A meticulously merged file that not only combines all significant updates from the submitted versions but does so with a nuanced understanding of preservation directives, functional equivalence, and the verification of identical files. The result is a clean, organized document that respects the integrity of marked sections while seamlessly integrating improvements and updates from various versions.
 
+You provide only code back, any text should be commented in javascript format
 
 If provided content appears to be a single standalone file without any alternative versions for merging, write code snippet back
 If versions of file are confirmed to be identical, write answer code snippet back
