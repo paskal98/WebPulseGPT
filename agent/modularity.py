@@ -11,10 +11,36 @@ from dotenv import load_dotenv
 from langchain_community.document_loaders import TextLoader
 from langchain_core.messages import SystemMessage, HumanMessage
 
+from agent.core import add_to_build_script
 from agent.merge import MergeFile
 from agent.prebuild_file_parse import escape_snippet
 
-load_dotenv()
+
+
+def get_npm_pkg(input_text):
+    in_backticks = False
+
+    captured_text = []
+
+    backtick_count = 0
+
+    for char in input_text:
+        if char == '`':
+            backtick_count += 1
+            if backtick_count == 3:
+                if in_backticks:
+                    break
+                else:
+                    in_backticks = True
+                    backtick_count = 0
+                    continue
+        else:
+            backtick_count = 0
+
+        if in_backticks and backtick_count == 0:
+            captured_text.append(char)
+
+    return ''.join(captured_text).strip()
 
 
 def parse_structure(string_to_parse):
@@ -132,15 +158,17 @@ def extract_code_block(text):
     else:
         return "No code block found."
 
+
 class Modularity:
-    def __init__(self, project_id, client):
-        self.chat = ChatOpenAI(model_name="gpt-3.5-turbo-1106")
-        self.embeddings = OpenAIEmbeddings()
+    def __init__(self, project_id, client, API, root_path):
+        self.chat = ChatOpenAI(model_name="gpt-3.5-turbo-1106",openai_api_key=API)
+        self.embeddings = OpenAIEmbeddings(openai_api_key=API)
         self.chain = None
         self.project_path = f"output/projects/{project_id}/project_summary.txt"
         self.emb_id = "output/projects_embeddings/" + project_id
         self.project_id = project_id
         self.client = client
+        self.root_path = root_path
 
         if os.path.exists(self.emb_id):
             shutil.rmtree(self.emb_id)
@@ -292,8 +320,13 @@ class Modularity:
                 #preparse ast tree for better merging
                 if ".js" in f_k and len(code_old) != len("//"+f_k):
                     code_old = remove_first_line_if_contains(code_old, "javascript")
-                    merge = MergeFile([{f_k:code_old},{f_k:code_response}], self.client, self.project_id)
-                    response = merge.merge_files()[0][f_k]
+                    merge = MergeFile([{f_k:code_old},{f_k:code_response}], self.client, self.project_id, self.root_path)
+
+                    if "require('express" in code_old:
+                        response = merge.merge_files(type="server")[0][f_k]
+                    else:
+                        response = merge.merge_files(type="client")[0][f_k]
+
                     code_response = extract_code_block(response.replace(f_k+":","\n"))
                     code_response = remove_first_line_if_contains(code_response,"javascript")
                     code_response=code_response.replace(f_k+":","\n")
@@ -312,13 +345,43 @@ class Modularity:
              file.write(project_total)
 
 
+    def project_builder_init(self):
+        with open(self.project_path, "r", encoding="utf-8") as file:
+            project_total = file.read().strip()
+
+        file_path = f'output/projects/{self.project_id}/build.sh'
+
+        if os.path.exists(file_path):
+            os.remove(file_path)
+
+        for file in self.project_structure_files:
+            content = parse_content_by_key(project_total, file + ":")
+
+            content = remove_first_line_if_contains(content, "javascript")
+            content = remove_first_line_if_contains(content, "html")
+            content = remove_first_line_if_contains(content, "css")
+
+            add_to_build_script(file, content, self.project_id)
+
+        npm_pkg = self.project_init_pkg()
+        with open(f'output/projects/{self.project_id}/build.sh', 'a', encoding="utf-8") as script_file:
+            script_file.write(f'\n{npm_pkg}\n')
 
 
-    def project_init_pckg(self):
+
+    def project_init_pkg(self):
         res = self.chain.run("""
+                        Based on Project implementation
                         Create me command to install all required packages that used in project
-                        it should be in format:
+                        Output format should be in format:
                         npm install package1 package2 ...
 
                         """)
+
         print(res)
+
+        if len(get_npm_pkg(res)) == 0:
+            return res
+        else:
+            return get_npm_pkg(res)
+

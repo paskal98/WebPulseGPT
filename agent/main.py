@@ -11,7 +11,10 @@ from agent.JS_parser import parse_ast_conditionally, find_function_by_name, \
     split_event_listeners, extract_function
 from agent.core import Core
 from agent.implemented_parser import parse_file_contents
+from agent.merge import MergeFile
 from agent.modularity import Modularity, extract_file_paths, get_uncreated_files
+
+
 
 API = os.environ['OPENAI_API_KEY']
 project_id = str(uuid.uuid4().hex)
@@ -19,42 +22,85 @@ project_id = str(uuid.uuid4().hex)
 
 if __name__ == "__main__":
     # core = Core(API, project_id)
+    # descr = None
+    # dev_plan = None
+    # impl = None
     #
-    # print("START...\n\n")
-    # core.on_start()
+    # try:
+    #     print("START...\n\n")
+    #     core.on_start()
+    # except:
+    #     print("Error on START")
     #
-    # print("Description...\n\n")
-    # core.on_description()
+    # try:
+    #     print("Description...\n\n")
+    #     core.on_description()
+    # except:
+    #     print("Error on Description")
     #
-    # print("Technologies...\n\n")
-    # core.on_technologies()
+    # try:
+    #     print("Technologies...\n\n")
+    #     core.on_technologies()
+    # except:
+    #     print("Error on Technologies")
     #
-    # print("Tasks...\n\n")
-    # core.on_tasks()
+    # try:
+    #     print("Tasks...\n\n")
+    #     core.on_tasks()
+    # except:
+    #     print("Error on Tasks")
     #
-    # print("Planing...\n\n")
-    # core.on_planing()
+    # try:
+    #     print("Planing...\n\n")
+    #     core.on_planing()
+    # except:
+    #     print("Error on Planing")
     #
-    # print("Project Structure...\n\n")
-    # core.on_project_structure()
+    # try:
+    #     print("Project Structure...\n\n")
+    #     core.on_project_structure()
+    # except:
+    #     print("Error on Project Structure")
     #
-    # print("Implementing Tasks..\n\n")
-    # core.on_developing_tasks()
+    # try:
+    #     print("Implementing Tasks..\n\n")
+    #     core.on_developing_tasks()
+    # except:
+    #     print("Error on Implementing Tasks")
     #
-    # print("Merge Files...\n\n")
-    # core.on_merge_files()
+    # try:
+    #     print("Merge Files...\n\n")
+    #     core.on_merge_files()
+    # except:
+    #     print("Error on Merge Files")
     #
-    # print("Generate Build File (build.sh)...\n\n")
-    # core.generate_bash()
-    #
-    # core.save_project_impl()
+    # try:
+    #     print("Project Description Tasks Impl Summary..\n\n")
+    #     descr, dev_plan, impl = core.save_project_impl()
+    # except:
+    #     print("Error Project Description Tasks Impl Summary")
 
-    modularity = Modularity("15c65ae4eb3d4978b1df18fa03d7a59a", OpenAI(api_key=API))
-    # modularity.init_module()
-    # modularity.project_structure()
-    # modularity.project_summary()
 
-    # modularity.project_issue_solution()
+
+    modularity = Modularity("bf116e84f80242449c53d083610949a4", OpenAI(api_key=API),API)
+    print("Project Modularity Init...\n\n")
+    modularity.init_module()
+    modularity.project_structure()
+    modularity.project_builder_init()
+
+
+    try:
+        print("Project Issues...\n\n")
+        modularity.project_summary()
+    except:
+        print("Error Project Issues")
+
+    try:
+        print("Project Issues Solution...\n\n")
+        modularity.project_issue_solution()
+        modularity.project_builder_init()
+    except:
+        print("Error Project Issues Solution")
 
     while True:
         try:
@@ -66,20 +112,17 @@ if __name__ == "__main__":
             modularity.project_structure()
             modularity.project_user_updates(update)
             modularity.project_issue_solution()
+            modularity.project_builder_init()
         except:
             print("Failed")
 
-
-
-
-    # print("Modularity Files HTML JS...\n\n")
-    # core.on_modularity_html_js()
+    # merge = MergeFile([{"script.js": code1}, {"script.js": code2}], OpenAI(api_key=API), "aaaaaaaaaa")
     #
-    # print("Modularity...\n\n")
-    # core.on_check_modularity()
     #
-    # print("Summary...\n\n")
-    # core.on_summary()
+    # print(merge.merge_files(type="client")[0]["script.js"])
+
+
+
 
 
 

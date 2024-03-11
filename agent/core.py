@@ -20,22 +20,7 @@ from agent.tasks_parser import parse_tasks
 session_id = str(uuid.uuid4())
 
 
-def phase_project_setup(request):
-    with open("prompts/project_setup.prompt", "r") as file:
-        project_setup = file.read().strip()
-    request += "\n" + project_setup
-    return request
 
-
-def contains_only_letters(text):
-    special_symbols = set("{};<>=>")
-
-    for char in text:
-        if char in special_symbols:
-            return False
-        elif not char.isalpha():
-            return False
-    return True
 
 
 def add_to_build_script(file_path, content, project_id):
@@ -75,7 +60,7 @@ def parse_packages_from_code(code):
 
 
 class Core:
-    def __init__(self, api_key, project_id):
+    def __init__(self, api_key, project_id, root_path):
         self.client = OpenAI(api_key=api_key)
         self.merged_files = []
         self.project_files = []
@@ -93,9 +78,18 @@ class Core:
         self.full_stack_acting = None
         self.plan = None
         self.project_id = project_id
+        self.root_path = root_path
 
         dir_path = f"output/projects/{self.project_id}"
         os.makedirs(dir_path, exist_ok=True)
+
+    def phase_project_setup(self, request):
+        with open(f"{self.root_path}/prompts/project_setup.prompt", "r") as file:
+            project_setup = file.read().strip()
+        request += "\n" + project_setup
+        return request
+
+
     def get_total_project(self):
         return self.prepare_merged_files_to_str, self.prepare_plan_to_str, self.project_descr
 
@@ -115,6 +109,8 @@ class Core:
                 relevant_files += "\n\n"
 
             file.write(f"{self.project_descr}\n{tasks_formatted}\n{relevant_files}")
+
+        return self.project_descr, tasks_formatted, relevant_files
 
     def print_history(self):
         for text in self.conversation_history:
@@ -185,21 +181,21 @@ class Core:
 
         return ai_response
 
-    def on_start(self):
-        print("|AI| -> " + parse("b1"))
-        # self.project_name = input()
-        self.project_name = "ToDo"
+    def on_start(self, name):
+        self.project_name = name
 
-    def on_description(self):
-        print("|AI| -> " + parse("b2"))
-        # self.project_descr = input()
+    def on_description(self,description):
+        # print("|AI| -> " + parse("b2"))
+        # # self.project_descr = input()
+        #
+        # with open("blanks/user_project_details_todo.blank", "r") as file:
+        #     project_details = file.read().strip()
+        self.project_descr = description
 
-        with open("blanks/user_project_details.blank", "r") as file:
-            project_details = file.read().strip()
-        self.project_descr = project_details
 
     def on_technologies(self):
-        with open("prompts/technologies.prompt", "r") as file:
+
+        with open(f"{self.root_path}/prompts/technologies.prompt", "r") as file:
             tech_prompt = file.read().strip()
 
         final_prompt = (tech_prompt
@@ -210,18 +206,18 @@ class Core:
         # print(self.project_tech)
 
     def on_tasks(self):
-        with open("prompts/tech_lead.prompt", "r") as file:
+        with open(f"{self.root_path}/prompts/tech_lead.prompt", "r") as file:
             tech_lead_prompt = file.read().strip()
 
         project_tasks_raw = self.ai_conversation(tech_lead_prompt).content
         self.project_tasks = parse_tasks(project_tasks_raw)
 
-        # self.print_tasks()
+
 
     def on_planing(self):
         self.clear_history_role()
 
-        with open("prompts/plan.prompt", "r") as file:
+        with open(f"{self.root_path}/prompts/plan.prompt", "r") as file:
             plan_prompt = file.read().strip()
 
         final_content = plan_prompt.replace("{{ name }}", self.project_name) \
@@ -237,10 +233,12 @@ class Core:
         print(plan)
         print("\n\n\n")
 
+        return self.development_plan
+
     def on_project_structure(self):
         self.clear_history_role()
 
-        with open("prompts/tree_structure.prompt", "r") as file:
+        with open(f"{self.root_path}/prompts/tree_structure.prompt", "r") as file:
             tree_structure = file.read().strip()
 
         final_content = tree_structure.replace("{{ project_details }}", self.project_descr) \
@@ -249,17 +247,14 @@ class Core:
         self.conversation_history_roles.append({"role": "user", "content": final_content})
         self.probably_structure = self.ai_conversation(None, 'role').content
 
-        # print("Probably Structure")
-        # print(self.probably_structure)
-        # print("\n\n\n")
 
     def on_developing_tasks(self):
         self.clear_history_role()
 
-        with open("prompts/full_stack_developer.prompt", "r") as file:
+        with open(f"{self.root_path}/prompts/full_stack_developer.prompt", "r") as file:
             full_stack_prompt = file.read().strip()
 
-        with open("prompts/extract.prompt", "r") as file:
+        with open(f"{self.root_path}/prompts/extract.prompt", "r") as file:
             extract = file.read().strip()
 
         final_content = full_stack_prompt.replace("{{ project_details }}", self.project_descr)
@@ -272,17 +267,10 @@ class Core:
                 request += f"{task_number}: {task_description}\n"
 
                 if 'Project' in phase:
-                    request = phase_project_setup(request)
+                    request = self.phase_project_setup(request)
 
                 self.conversation_history_roles.append({"role": "user", "content": request})
                 self.implemented_tasks = self.ai_conversation(None, 'role').content
-
-                # print("Now is " + request)
-                # print(self.implemented_tasks)
-                # print("\n\n\n")
-
-                # input("Press Enter to continue to the next task...")
-                # print("Key pressed, continuing to next task...")
 
                 request = ''
 
@@ -290,7 +278,6 @@ class Core:
                     response = self.ai_conversation(extract, 'extract').content
                     self.implemented_project.append(response)
                     self.project_files.append(parse_file_contents(response))
-                    # print(response)
 
             if "Front" in phase or "Back" in phase or "Database" in phase or "Features" in phase:
                 extracted_content = "\n".join(self.implemented_project)
@@ -307,138 +294,12 @@ class Core:
                                                                                    "\n - Socket.io" +
                                                                    extracted_content})
 
-        consolidated_project_files = consolidate_duplicates(self.project_files)
-
-        with open(f'output/projects/{self.project_id}/project_files.txt', 'w', encoding="utf-8") as file:
-
-            for dictionary in self.project_files:
-                for key, value in dictionary.items():
-                    file.write(f"{key}: {value}\n\n")
-                file.write("\n----------\n")
-
-        with open(f'output/projects/{self.project_id}/consolidated_project_files.txt', 'w', encoding="utf-8") as file:
-            for dictionary in consolidated_project_files:
-                for key, value in dictionary.items():
-                    file.write(f"{key}: {value}\n\n")
-                file.write("\n----------\n")
-            file.write("\n\n\n\n")
-            for dictionary in consolidated_project_files:
-                for key in dictionary.keys():
-                    file.write("- " + key + "\n")
-
-    def on_summary(self):
-        self.clear_history_role()
-
-        with open("prompts/summary.prompt", "r") as file:
-            summary = file.read().strip()
-
-        implemented = ""
-        for dictionary in self.merged_files:
-            for key, value in dictionary.items():
-                implemented += f"{key}: {value}\n\n"
-            implemented += "\n----------\n"
-
-        final_content = (summary.replace("{{ project_details }}", self.project_descr)
-                         .replace("{{ project_plan }}", self.prepare_plan_to_str())
-                         .replace("{{ implemented project }}", implemented))
-
-        self.conversation_history_roles.append({"role": "user", "content": final_content})
-        project_reviewed = self.ai_conversation(None, 'role').content
-
-        with open(f'output/projects/{self.project_id}/project_implemented_raw.txt', 'w', encoding="utf-8") as file:
-            file.write("\n<$$$>\n".join(self.implemented_project))
-
-        with open(f'output/projects/{self.project_id}/project_reviewed.txt', 'w', encoding="utf-8") as file:
-            file.write(project_reviewed)
-
-        with open(f'output/projects/{self.project_id}/final_content.txt', 'w', encoding="utf-8") as file:
-            file.write(final_content)
-
 
     def on_merge_files(self):
-        merge = MergeFile(self.project_files,self.client,self.project_id )
+        merge = MergeFile(self.project_files,self.client,self.project_id, self.root_path )
         self.merged_files = merge.merge_files()
 
-    def on_modularity_html_js(self):
-        self.clear_history_role()
-        with open("prompts/file_modularity_html_js.prompt", "r") as file:
-            modularity_html_js = file.read().strip()
 
-        all_keys = {key for d in self.merged_files for key in d.keys()}
-
-
-        for key in all_keys:
-            for dictionary in self.merged_files:
-                if key in dictionary and ".html" in key:
-                    modularity_html_js = modularity_html_js.replace("{{ html }}", dictionary[key])
-                if key in dictionary and "script.js" in key:
-                    modularity_html_js = modularity_html_js.replace("{{ js }}", dictionary[key])
-
-
-
-        self.conversation_history_roles.append({"role": "system", "content": modularity_html_js})
-
-        response = self.ai_conversation(None, 'role').content
-
-        with open(f'output/projects/{self.project_id}/file_modularity_html_js.txt', 'w', encoding="utf-8") as file:
-            file.write(modularity_html_js)
-        with open(f'output/projects/{self.project_id}/file_modularity_html_js_RESPOSNE.txt', 'w', encoding="utf-8") as file:
-            file.write(response)
-
-    def on_modularity_js_js(self):
-        self.clear_history_role()
-        with open("prompts/file_modularity_js_js.prompt", "r") as file:
-            modularity_js_js = file.read().strip()
-
-        all_keys = {key for d in self.merged_files for key in d.keys()}
-
-        self.conversation_history_roles.append({"role": "system", "content": modularity_js_js})
-        for key in all_keys:
-            for dictionary in self.merged_files:
-                if key in dictionary and ".js" in key:
-                    self.conversation_history_roles.append({"role": "system", "content": dictionary[key]})
-
-        self.conversation_history_roles.append({"role": "system", "content": modularity_js_js})
-
-        response = self.ai_conversation(None, 'role').content
-
-        with open(f'output/projects/{self.project_id}/file_modularity_js_js.txt', 'w', encoding="utf-8") as file:
-            file.write(modularity_js_js)
-        with open(f'output/projects/{self.project_id}/file_modularity_js_js_RESPOSNE.txt', 'w', encoding="utf-8") as file:
-            file.write(response)
-
-    def on_check_modularity(self):
-        self.clear_history_role()
-        with open("prompts/modularity.prompt", "r") as file:
-            modularity = file.read().strip()
-        self.conversation_history_roles.append({"role": "system", "content": modularity})
-
-
-        for dictionary in self.merged_files:
-            for key, value in dictionary.items():
-                if ".html" in key:
-                    self.conversation_history_roles.append(
-                        {"role": "system", "content": "here html file, that should be checked\n" + value})
-                else:
-                    self.conversation_history_roles.append(
-                        {"role": "system", "content": value})
-
-        response = self.ai_conversation(None, 'role').content
-        print(response)
-
-        self.clear_history_role()
-        self.conversation_history_roles.append({"role": "system", "content": modularity})
-        for dictionary in self.merged_files:
-            for key, value in dictionary.items():
-                if ".js" in key and not "express" in value or not "mongoose" in value:
-                    self.conversation_history_roles.append(
-                        {"role": "system", "content": "here js file, that should be checked\n" + value})
-                else:
-                    self.conversation_history_roles.append(
-                        {"role": "system", "content": value})
-
-        response = self.ai_conversation(None, 'role').content
-        print(response)
 
     def generate_bash(self):
         packages = []

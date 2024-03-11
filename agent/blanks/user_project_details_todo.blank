@@ -13,12 +13,10 @@ Ensure your API communicates with the MongoDB database to store and retrieve tas
 Design your MongoDB schema for the to-do tasks. Typically, this includes fields like task name, status, priority, and timestamps.
 Use Mongoose, an Object Data Modeling (ODM) library for MongoDB and Node.js, to interact with the database.
 5. Features to Include
-Basic Features:
 Add Tasks: Users should be able to add new tasks to their to-do list.
 View Tasks: Display a list of tasks. You might include filters or sorting (by date, completed status, priority).
 Mark as Complete: Users can mark tasks as complete or toggle them back to incomplete.
 Delete Tasks: Allow users to delete tasks from the list.
-Advanced Features:
 Edit Tasks: Implement functionality to edit the details of a task.
 User Authentication: Allow users to create accounts and save their to-do lists.
 Due Dates and Reminders: Users can set due dates for tasks and receive reminders.
