@@ -341,7 +341,7 @@ class Modularity:
 
 
 
-        with open("nen.txt", "w", encoding="utf-8") as file:
+        with open(self.project_path, "w", encoding="utf-8") as file:
              file.write(project_total)
 
 

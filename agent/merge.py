@@ -203,19 +203,19 @@ class MergeFile:
                 else:
                     self.merged_files.append({key: result})
 
-        with open(f'output/projects/{self.project_id}/merged_files.txt', 'w', encoding="utf-8") as file:
-            for dictionary in self.merged_files:
-                for key, value in dictionary.items():
-                    if "```" in value:
-                        value.replace("```","")
-                    file.write(f"{key}: ```{key}: {value}```\n\n")
-
-                file.write("\n===========================================\n")
-            file.write("\n\n\n\n")
-
-            for dictionary in self.merged_files:
-                for key in dictionary.keys():
-                    file.write("- " + key + "\n")
+        # with open(f'output/projects/{self.project_id}/merged_files.txt', 'w', encoding="utf-8") as file:
+        #     for dictionary in self.merged_files:
+        #         for key, value in dictionary.items():
+        #             if "```" in value:
+        #                 value.replace("```","")
+        #             file.write(f"{key}: ```{key}: {value}```\n\n")
+        #
+        #         file.write("\n===========================================\n")
+        #     file.write("\n\n\n\n")
+        #
+        #     for dictionary in self.merged_files:
+        #         for key in dictionary.keys():
+        #             file.write("- " + key + "\n")
 
         return self.merged_files
 

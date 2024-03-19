@@ -8,7 +8,7 @@ app.use(express.json());
 
 app.post('/parse', (req, res) => {
     const { code } = req.body;
-
+    console.log(code)
     try {
         const ast = esprima.parseScript(code);
         res.json(ast);
